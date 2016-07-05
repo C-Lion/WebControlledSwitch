@@ -57,6 +57,8 @@ void WebServer::HandleRoot()
 {
 	auto html = string("<p><h3>The current switch status is ") +
 	(_relayState ? "on" : "off") + "</h3></p>";
+	html += string(R"(<p><a href="on">Turn On</a></p>)");
+	html += string(R"(<p><a href="off">Turn Off</a></p>)");
 	SendBackHtml(html);
 }
 
