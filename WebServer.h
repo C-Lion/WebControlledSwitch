@@ -69,7 +69,6 @@ private:
 	int _lastConnectionStatus;
 	bool _relayState = false;
 	std::string _header;
-	const std::string _appKey;
 	const std::string _authorizedUrl;
 	const std::string _onUrl;
 	const std::string _offUrl;
@@ -82,8 +81,7 @@ private:
 	template<typename T>
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	void HandleMain();
-	void HandleRoot();
-	void HandleNotFound();
+	void HandleError();
 	void Notify(std::function<void (WebCommandPtr_t)> callBack);
 	void HandleOn();
 	void HandleOff();

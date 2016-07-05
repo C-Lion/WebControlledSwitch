@@ -34,17 +34,16 @@ std::array<string, 8> ConnectionStatus::_messageMap =
 
 WebServer::WebServer(int port, const char *ssid, const char *password, const char *appKey) : 
 	_server(port), 
-	_appKey(appKey),
-	_authorizedUrl(string("/") + _appKey),
-	_onUrl(string("/") + _appKey + "/on"),
-	_offUrl(string("/") + _appKey + "/off")
+	_authorizedUrl(string("/") + appKey),
+	_onUrl(string("/") + appKey + "/on"),
+	_offUrl(string("/") + appKey + "/off")
 {
-	_server.on("/", [this]() { HandleRoot(); });
+	_server.on("/", [this]() { HandleError(); });
 	_server.on(_authorizedUrl.c_str(), [this]() { HandleMain(); });
 	_server.on((_authorizedUrl + "/").c_str(), [this]() { HandleMain(); });
 	_server.on(_onUrl.c_str(), [this]() { HandleOn(); });
 	_server.on(_offUrl.c_str(), [this]() { HandleOff(); });
-	_server.onNotFound([this]() { HandleNotFound(); });
+	_server.onNotFound([this]() { HandleError(); });
 
 	WiFi.begin(ssid, password);
 	_lastConnectionStatus = WiFi.status();
@@ -58,7 +57,7 @@ void WebServer::SendBackHtml(const string &message)
 		"text/html",
 		html.c_str());
 }
-void WebServer::HandleRoot()
+void WebServer::HandleError()
 {
 	_server.send(401,
 		"text/plain",
@@ -71,12 +70,6 @@ void WebServer::HandleMain()
 	(_relayState ? "on" : "off") + "</h3></p>";
 	html += string(R"(<p><a href=")") + _onUrl + string(R"(">Turn On</a></p>)");
 	html += string(R"(<p><a href=")") + _offUrl + string(R"(">Turn Off</a></p>)");
-	SendBackHtml(html);
-}
-
-void WebServer::HandleNotFound() 
-{
-	auto html = string("<p><h3>Command not found</h3></p><p>Use /on or /off</p>");
 	SendBackHtml(html);
 }
 
