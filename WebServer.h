@@ -69,14 +69,19 @@ private:
 	int _lastConnectionStatus;
 	bool _relayState = false;
 	std::string _header;
+	const std::string _appKey;
+	const std::string _authorizedUrl;
+	const std::string _onUrl;
+	const std::string _offUrl;
 
 	void SendBackHtml(const std::string &message);
 	void UpdateStatus(); //update every seconds
  public:
-	WebServer(int port, const char *ssid, const char *password);
+	WebServer(int port, const char *ssid, const char *password, const char *appKey);
 	
 	template<typename T>
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
+	void HandleMain();
 	void HandleRoot();
 	void HandleNotFound();
 	void Notify(std::function<void (WebCommandPtr_t)> callBack);

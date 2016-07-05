@@ -32,13 +32,19 @@ std::array<string, 8> ConnectionStatus::_messageMap =
 };
 
 
-WebServer::WebServer(int port, const char *ssid, const char *password) : _server(port)
+WebServer::WebServer(int port, const char *ssid, const char *password, const char *appKey) : 
+	_server(port), 
+	_appKey(appKey),
+	_authorizedUrl(string("/") + _appKey),
+	_onUrl(string("/") + _appKey + "/on"),
+	_offUrl(string("/") + _appKey + "/off")
 {
 	_server.on("/", [this]() { HandleRoot(); });
-	_server.on("/on", [this]() { HandleOn(); });
-	_server.on("/off", [this]() { HandleOff(); });
+	_server.on(_authorizedUrl.c_str(), [this]() { HandleMain(); });
+	_server.on((_authorizedUrl + "/").c_str(), [this]() { HandleMain(); });
+	_server.on(_onUrl.c_str(), [this]() { HandleOn(); });
+	_server.on(_offUrl.c_str(), [this]() { HandleOff(); });
 	_server.onNotFound([this]() { HandleNotFound(); });
-	//_server.on
 
 	WiFi.begin(ssid, password);
 	_lastConnectionStatus = WiFi.status();
@@ -52,13 +58,19 @@ void WebServer::SendBackHtml(const string &message)
 		"text/html",
 		html.c_str());
 }
+void WebServer::HandleRoot()
+{
+	_server.send(401,
+		"text/plain",
+		"Unauthorized");
+}
 
-void WebServer::HandleRoot() 
+void WebServer::HandleMain() 
 {
 	auto html = string("<p><h3>The current switch status is ") +
 	(_relayState ? "on" : "off") + "</h3></p>";
-	html += string(R"(<p><a href="on">Turn On</a></p>)");
-	html += string(R"(<p><a href="off">Turn Off</a></p>)");
+	html += string(R"(<p><a href=")") + _onUrl + string(R"(">Turn On</a></p>)");
+	html += string(R"(<p><a href=")") + _offUrl + string(R"(">Turn Off</a></p>)");
 	SendBackHtml(html);
 }
 

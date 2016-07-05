@@ -18,6 +18,8 @@ int relay = 2;
 const char *SSID = "[your wifi access point ssid]";
 const char *password = "[your wifi access point password]";
 const char *webSiteHeader = "Welcome to the web light switch Server";
+const char *appKey = "[your secret app key]";
+
 
 void SwitchRelayState(int state);
 void Reset();
@@ -30,7 +32,7 @@ PushButtonManagerPtr_t pushButtonManager;
 void setup()
 {
 	logger = make_shared<Logger>(redLed, greenLed);
-	server = make_shared<WebServer>(80, SSID, password);
+	server = make_shared<WebServer>(80, SSID, password, appKey);
 	server->SetWebSiteHeader(string(webSiteHeader));
 	relayManager = make_shared<RelayManager>(relay);
 	pushButtonManager = make_shared<PushButtonManager>(pushButton, &SwitchRelayState, &Reset);
