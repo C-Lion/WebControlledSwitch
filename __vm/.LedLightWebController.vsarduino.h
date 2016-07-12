@@ -91,6 +91,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #define noInterrupts() cli()
 
 #include <LedLightWebController.ino>
+#include <Configuration.h>
 #include <LedsLogger.cpp>
 #include <LedsLogger.h>
 #include <Logger.cpp>

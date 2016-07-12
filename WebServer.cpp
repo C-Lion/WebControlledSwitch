@@ -34,19 +34,22 @@ std::array<string, 8> ConnectionStatus::_messageMap =
 
 WebServer::WebServer(int port, const char *ssid, const char *password, const char *appKey) : 
 	_server(port), 
-	_authorizedUrl(string("/") + appKey),
-	_onUrl(string("/") + appKey + "/on"),
-	_offUrl(string("/") + appKey + "/off")
+	_authorizedUrl(string("/") + appKey)
 {
 	_server.on("/", [this]() { HandleError(); });
 	_server.on(_authorizedUrl.c_str(), [this]() { HandleMain(); });
 	_server.on((_authorizedUrl + "/").c_str(), [this]() { HandleMain(); });
-	_server.on(_onUrl.c_str(), [this]() { HandleOn(); });
-	_server.on(_offUrl.c_str(), [this]() { HandleOff(); });
 	_server.onNotFound([this]() { HandleError(); });
 
 	WiFi.begin(ssid, password);
 	_lastConnectionStatus = WiFi.status();
+}
+
+void WebServer::RegisterCommand(WebCommandPtr_t command)
+{
+	_webCommands.push_back(command);
+	auto url = string(CreateUrl(command->TriggerUrl()));
+	_server.on(url.c_str(), [=]() {  HandleCommand(command); });
 }
 
 void WebServer::SendBackHtml(const string &message)
@@ -68,26 +71,21 @@ void WebServer::HandleMain()
 {
 	auto html = string("<p><h3>The current switch status is ") +
 	(_relayState ? "on" : "off") + "</h3></p>";
-	html += string(R"(<p><a href=")") + _onUrl + string(R"(">Turn On</a></p>)");
-	html += string(R"(<p><a href=")") + _offUrl + string(R"(">Turn Off</a></p>)");
+	for (auto webCommand : _webCommands)
+	{
+		html += string(R"(<p><a href=")") + CreateUrl(webCommand->TriggerUrl()) + string(R"(">)") + webCommand->MenuEntry() + string("</a></p>");
+	}
 	SendBackHtml(html);
 }
 
-void WebServer::HandleOn() 
+void WebServer::HandleCommand(WebCommandPtr_t webCommand)
 {
-	auto html = string("<p><h3>Turning On</h3></p>");
-	Notify([this](WebCommandPtr_t subscriber) {subscriber->OnTurnOn(); });
+	auto html = string("<p><h3>") + webCommand->ResultHTML() +string("</h3></p>");
+	Notify([=](WebNotificationPtr_t subscriber) {subscriber->OnCommand(webCommand->Name(), webCommand->Id()); });
 	SendBackHtml(html);
 }
 
-void WebServer::HandleOff() 
-{
-	auto html = string("<p><h3>Turning Off</h3></p>");
-	Notify([this](WebCommandPtr_t subscriber) {subscriber->OnTurnOff(); });
-	SendBackHtml(html);
-}
-
-void WebServer::Notify(function<void(WebCommandPtr_t)> callBack)
+void WebServer::Notify(function<void(WebNotificationPtr_t)> callBack)
 {
 	for (auto subscriber : _subscribers)
 	{
@@ -95,7 +93,7 @@ void WebServer::Notify(function<void(WebCommandPtr_t)> callBack)
 	}
 }
 
-void WebServer::Register(WebCommandPtr_t subscriber)
+void WebServer::Register(WebNotificationPtr_t subscriber)
 {
 	_subscribers.push_back(subscriber);
 }
@@ -126,7 +124,7 @@ void WebServer::UpdateStatus()
 	//Connection lost, notify once
 	if (_lastConnectionStatus == WL_CONNECTED && currentStatus != WL_CONNECTED)
 	{
-		Notify([=](WebCommandPtr_t subscriber)
+		Notify([=](WebNotificationPtr_t subscriber)
 		{
 			subscriber->OnDisconnected(ConnectionStatus(currentStatus));
 		});
@@ -138,7 +136,7 @@ void WebServer::UpdateStatus()
 		MDNS.begin("esp8266");
 		_server.begin();
 
-		Notify([=](WebCommandPtr_t subscriber)
+		Notify([=](WebNotificationPtr_t subscriber)
 		{
 			subscriber->OnConnected(ConnectionStatus(currentStatus), WiFi.localIP());
 		});
@@ -149,8 +147,13 @@ void WebServer::UpdateStatus()
 	if (hasNotified)
 		return;
 	//else error
-	Notify([=](WebCommandPtr_t subscriber)
+	Notify([=](WebNotificationPtr_t subscriber)
 	{
 		subscriber->OnError(ConnectionStatus(currentStatus));
 	});
+}
+
+std::string WebServer::CreateUrl(const std::string& s) const
+{
+	return _authorizedUrl + "/" + s;
 }

@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-class Logger : public IWebCommands
+class Logger : public IWebNotifications
 {
 private:
 	LedsLogger _ledLogger;
@@ -18,8 +18,7 @@ public:
 	Logger(int redLedPin, int greenLedPin, int baudRate = 115200);
 
 	void Loop() { _ledLogger.Loop(); }
-	void OnTurnOn() override;
-	void OnTurnOff() override;
+	void OnCommand(const std::string & commandName, int commandId) override;
 	void OnConnected(ConnectionStatus status, IPAddress ipAddress) override;
 	void OnDisconnected(ConnectionStatus status) override;
 	void OnError(ConnectionStatus status) override;

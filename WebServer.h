@@ -45,47 +45,58 @@ public:
 };
 
 
-class IWebCommands
+class IWebNotifications
 {
 public:
-	virtual ~IWebCommands()
-	{
-	}
-
-	virtual void OnTurnOn() = 0;
-	virtual void OnTurnOff() = 0;
+	virtual void OnCommand(const std::string & commandName, int commandId) = 0;
 	virtual void OnConnected(ConnectionStatus status, IPAddress ipAddress) = 0;
 	virtual void OnDisconnected(ConnectionStatus status) = 0;
 	virtual void OnError(ConnectionStatus status) = 0;
-};
 
-typedef std::shared_ptr<IWebCommands> WebCommandPtr_t;
+	virtual ~IWebNotifications() {	}
+};
+typedef std::shared_ptr<IWebNotifications> WebNotificationPtr_t;
+
+class IWebCommand
+{
+public:
+	virtual const std::string& Name() const = 0;
+	virtual const int Id() const = 0;
+	virtual const std::string& MenuEntry() const = 0; 
+	virtual const std::string& ResultHTML() const = 0;
+	virtual const std::string& TriggerUrl() const = 0;
+
+	virtual ~IWebCommand() {}
+};
+typedef std::shared_ptr<IWebCommand> WebCommandPtr_t;
 
 class WebServer
 {
 private:
 	ESP8266WebServer _server;
-	std::vector<WebCommandPtr_t> _subscribers;
+	std::vector<WebNotificationPtr_t> _subscribers;
 	int _lastConnectionStatus;
 	bool _relayState = false;
 	std::string _header;
 	const std::string _authorizedUrl;
-	const std::string _onUrl;
-	const std::string _offUrl;
+	std::vector<WebCommandPtr_t> _webCommands;
 
 	void SendBackHtml(const std::string &message);
 	void UpdateStatus(); //update every seconds
+	std::string CreateUrl(const std::string &s) const;
+
  public:
 	WebServer(int port, const char *ssid, const char *password, const char *appKey);
-	
+
+	void RegisterCommand(WebCommandPtr_t command);
+
 	template<typename T>
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	void HandleMain();
 	void HandleError();
-	void Notify(std::function<void (WebCommandPtr_t)> callBack);
-	void HandleOn();
-	void HandleOff();
-	void Register(WebCommandPtr_t subscriber);
+	void Notify(std::function<void (WebNotificationPtr_t)> callBack);
+	void HandleCommand(WebCommandPtr_t webCommand);
+	void Register(WebNotificationPtr_t subscriber);
 	bool IsConnected() const;
 	void Loop(int relayState);
 };

@@ -1,25 +1,18 @@
-// 
-// 
-// 
+
 
 #include "Logger.h"
-
+using namespace std;
 
 Logger::Logger(int redLedPin, int greenLedPin, int baudRate /*= 115200*/): _ledLogger(redLedPin, greenLedPin)
 {
 	Serial.begin(baudRate);
 }
 
-void Logger::OnTurnOn()
+void Logger::OnCommand(const std::string & commandName, int commandId)
 {
-	Serial.println("Turn on command recieved");
-	_ledLogger.BlinkGreen(2, 250);
-}
-
-void Logger::OnTurnOff()
-{
-	Serial.println("Turn off command recieved");
-	_ledLogger.BlinkGreen(4, 250);
+	string log(commandName + "command recieved");
+	Serial.println(log.c_str());
+	_ledLogger.BlinkGreen(commandId, 250);
 }
 
 void Logger::OnConnected(ConnectionStatus status, IPAddress ipAddress)
