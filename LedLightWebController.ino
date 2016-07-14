@@ -111,5 +111,5 @@ void SwitchRelayState(int state)
 
 void Reset()
 {
-	//Util::software_Reboot();
+	Util::software_Reboot();
 }
