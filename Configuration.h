@@ -7,7 +7,7 @@
 const char *SSID = "[your wifi access point ssid]";
 const char *password = "[your wifi access point password]";
 const char *webSiteHeader = "Welcome to the web light switch Server";
-const char *appKey = "[your secret app key]";
+const char *appKey = "[your secret app key]"; 
 
 const char *turnOnMenuEntry = "Turn On";
 const char *turnOffMenuEntry = "Turn Off";
