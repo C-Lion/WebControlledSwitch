@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include "RelayManager.h"
+#include "OnOffRelayManager.h"
+#include "PulseRelayManager.h"
 #include "Util.h"
 #include "WebServer.h"
 #include "Logger.h"
@@ -76,17 +77,19 @@ void setup()
 	logger = make_shared<Logger>(redLed, greenLed);
 	server = make_shared<WebServer>(80, SSID, password, appKey);
 	server->SetWebSiteHeader(string(webSiteHeader));
-	relayManager = make_shared<RelayManager>(relay);
 	pushButtonManager = make_shared<PushButtonManager>(pushButton, &SwitchRelayState, &Reset);
 	server->Register(logger);
-	server->Register(relayManager);
 
 #ifdef PULSE_COMMAND
+	relayManager = make_shared<PulseRelayManager>(relay);
 	make_shared<WebCommand>(pulseMenuEntry, "Activate", server)->Register();
 #else
+	relayManager = make_shared<OnOffRelayManager>(relay);
 	make_shared<WebCommand>(turnOnMenuEntry, "On", server)->Register();
 	make_shared<WebCommand>(turnOffMenuEntry, "Off", server)->Register();
 #endif
+
+	server->Register(relayManager);
 }
 
 void loop()
@@ -99,11 +102,7 @@ void loop()
 
 void SwitchRelayState(int state)
 {
-#ifdef PULSE_COMMAND
-	relayManager->Set(state, true);
-#else
 	relayManager->Set(state);
-#endif
 	string message("Relay has been ");
 	message += state == LOW ? "deactivated" : "activated";
 	logger->WriteMessage(message);

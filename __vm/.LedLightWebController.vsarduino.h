@@ -96,6 +96,10 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <LedsLogger.h>
 #include <Logger.cpp>
 #include <Logger.h>
+#include <OnOffRelayManager.cpp>
+#include <OnOffRelayManager.h>
+#include <PulseRelayManager.cpp>
+#include <PulseRelayManager.h>
 #include <PushButtonManager.cpp>
 #include <PushButtonManager.h>
 #include <RelayManager.cpp>

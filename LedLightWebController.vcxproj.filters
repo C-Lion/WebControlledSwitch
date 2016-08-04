@@ -42,6 +42,12 @@
     <ClInclude Include="Configuration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OnOffRelayManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PulseRelayManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WebServer.cpp">
@@ -60,6 +66,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PushButtonManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OnOffRelayManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PulseRelayManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
