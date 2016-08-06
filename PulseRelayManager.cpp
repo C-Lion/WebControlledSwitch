@@ -4,7 +4,7 @@
 
 #include "PulseRelayManager.h"
 
-PulseRelayManager::PulseRelayManager(int pin, unsigned long pulseDelay /* = 500 */) : RelayManager(pin), _pulseDelay(pulseDelay)
+PulseRelayManager::PulseRelayManager(int pin, unsigned long pulseDelay /* = 1000 */) : RelayManager(pin), _pulseDelay(pulseDelay)
 {
 	pinMode(pin, OUTPUT);
 	digitalWrite(pin, LOW);
@@ -18,7 +18,7 @@ void PulseRelayManager::Set(int value)
 
 void PulseRelayManager::OnCommand(const std::string& commandName, int commandId)
 {
-	if (commandName == "Pulse")
+	if (commandName == "Activate")
 		Set(HIGH);
 }
 

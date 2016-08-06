@@ -23,7 +23,7 @@ void PushButtonManager::Loop()
 	if (currentState == HIGH && _pressStartTime != 0 && millis() - _pressStartTime > 100) //Long enough press, act
 	{
 		_pressStartTime = 0;
-		_state = _state == LOW ? HIGH : LOW; //invert state
+		_state = StateOnTrigger(); 
 		_onStateChanged(_state); //Notify change
 	}
 

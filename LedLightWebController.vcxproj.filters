@@ -48,6 +48,12 @@
     <ClInclude Include="PulseRelayManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MementaryPushButtonManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TogglePushButtonManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WebServer.cpp">
@@ -72,6 +78,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PulseRelayManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MementaryPushButtonManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TogglePushButtonManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

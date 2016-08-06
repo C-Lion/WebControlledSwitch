@@ -17,10 +17,18 @@ private:
 	int _longPressStartTime = 0;
 	std::function<void(int)> _onStateChanged;
 	std::function<void()> _onLongPress;
+
+protected:
+	virtual int StateOnTrigger() const = 0;
+
 public:
+	virtual ~PushButtonManager()
+	{
+	}
+
 	PushButtonManager(int pin, std::function<void (int)> onStateChanged, std::function<void()> onLongPress);
 	void Loop();
-	bool State() const { return _state; }
+	int State() const { return _state; }
 };
 
 typedef std::shared_ptr<PushButtonManager> PushButtonManagerPtr_t;

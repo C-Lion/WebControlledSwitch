@@ -4,7 +4,8 @@
 #include "Util.h"
 #include "WebServer.h"
 #include "Logger.h"
-#include "PushButtonManager.h"
+#include "MementaryPushButtonManager.h"
+#include "TogglePushButtonManager.h"
 #include <memory>
 #include "Configuration.h"
 
@@ -77,13 +78,14 @@ void setup()
 	logger = make_shared<Logger>(redLed, greenLed);
 	server = make_shared<WebServer>(80, SSID, password, appKey);
 	server->SetWebSiteHeader(string(webSiteHeader));
-	pushButtonManager = make_shared<PushButtonManager>(pushButton, &SwitchRelayState, &Reset);
 	server->Register(logger);
 
 #ifdef PULSE_COMMAND
+	pushButtonManager = make_shared<MementaryPushButtonManager>(pushButton, &SwitchRelayState, &Reset);
 	relayManager = make_shared<PulseRelayManager>(relay);
 	make_shared<WebCommand>(pulseMenuEntry, "Activate", server)->Register();
 #else
+	pushButtonManager = make_shared<TogglePushButtonManager>(pushButton, &SwitchRelayState, &Reset);
 	relayManager = make_shared<OnOffRelayManager>(relay);
 	make_shared<WebCommand>(turnOnMenuEntry, "On", server)->Register();
 	make_shared<WebCommand>(turnOffMenuEntry, "Off", server)->Register();

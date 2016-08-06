@@ -13,6 +13,5 @@ private:
 
 };
 
-typedef std::shared_ptr<OnOffRelayManager> OnOffRelayManagerPtr_t;
 #endif
 
