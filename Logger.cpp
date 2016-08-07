@@ -1,5 +1,3 @@
-
-
 #include "Logger.h"
 using namespace std;
 
@@ -15,11 +13,11 @@ void Logger::OnCommand(const std::string & commandName, int commandId)
 	_ledLogger.BlinkGreen(commandId, 250);
 }
 
-void Logger::OnConnected(ConnectionStatus status, IPAddress ipAddress)
+void Logger::OnConnected(ConnectionStatus status)
 {
 	Serial.println(status.Message().c_str());
 	Serial.print("IP address: ");
-	Serial.println(ipAddress);
+	Serial.println(status.LocalIP());
 	_ledLogger.SetGreen(HIGH);
 	_ledLogger.SetRed(LOW);
 }

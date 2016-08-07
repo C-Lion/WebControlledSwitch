@@ -1,6 +1,3 @@
-// 
-// 
-// 
 
 #include "LedsLogger.h"
 

@@ -11,7 +11,7 @@ private:
 	const unsigned long _pulseDelay;
 
  public:
-	explicit PulseRelayManager(int pin, unsigned long pulseDelay = 1000);
+	PulseRelayManager(int pin, unsigned long pulseDelay, std::function<void(const std::string &)> logger);
 	void Set(int value) override;
 
 	void OnCommand(const std::string & commandName, int commandId) override;

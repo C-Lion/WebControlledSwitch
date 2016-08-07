@@ -2,6 +2,7 @@
 #include "OnOffRelayManager.h"
 #include "PulseRelayManager.h"
 #include "Util.h"
+#include "WiFiManager.h"
 #include "WebServer.h"
 #include "Logger.h"
 #include "MementaryPushButtonManager.h"
@@ -69,6 +70,7 @@ void SwitchRelayState(int state);
 void Reset();
 
 LoggerPtr_t logger;
+WiFiManagerPtr_t wifiManager;
 WebServerPtr_t server;
 RelayManagerPtr_t relayManager;
 PushButtonManagerPtr_t pushButtonManager;
@@ -76,17 +78,18 @@ PushButtonManagerPtr_t pushButtonManager;
 void setup()
 {
 	logger = make_shared<Logger>(redLed, greenLed);
-	server = make_shared<WebServer>(80, SSID, password, appKey);
+	wifiManager = make_shared<WiFiManager>(SSID, password);
+	server = make_shared<WebServer>(wifiManager, 80, appKey);
 	server->SetWebSiteHeader(string(webSiteHeader));
 	server->Register(logger);
 
 #ifdef PULSE_COMMAND
 	pushButtonManager = make_shared<MementaryPushButtonManager>(pushButton, &SwitchRelayState, &Reset);
-	relayManager = make_shared<PulseRelayManager>(relay);
+	relayManager = make_shared<PulseRelayManager>(relay, 1000, [=](const string &message) { logger->WriteMessage(message); });
 	make_shared<WebCommand>(pulseMenuEntry, "Activate", server)->Register();
 #else
 	pushButtonManager = make_shared<TogglePushButtonManager>(pushButton, &SwitchRelayState, &Reset);
-	relayManager = make_shared<OnOffRelayManager>(relay);
+	relayManager = make_shared<OnOffRelayManager>(relay, [=](const string &message) { logger->WriteMessage(message); });
 	make_shared<WebCommand>(turnOnMenuEntry, "On", server)->Register();
 	make_shared<WebCommand>(turnOffMenuEntry, "Off", server)->Register();
 #endif
@@ -98,6 +101,7 @@ void setup()
 
 void loop()
 {
+	wifiManager->Loop();
 	server->Loop(relayManager->State());
 	logger->Loop();
 	pushButtonManager->Loop();
@@ -107,9 +111,6 @@ void loop()
 void SwitchRelayState(int state)
 {
 	relayManager->Set(state);
-	string message("Relay has been ");
-	message += state == LOW ? "deactivated" : "activated";
-	logger->WriteMessage(message);
 }
 
 void Reset()

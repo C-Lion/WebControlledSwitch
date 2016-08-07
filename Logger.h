@@ -19,7 +19,7 @@ public:
 
 	void Loop() { _ledLogger.Loop(); }
 	void OnCommand(const std::string & commandName, int commandId) override;
-	void OnConnected(ConnectionStatus status, IPAddress ipAddress) override;
+	void OnConnected(ConnectionStatus status) override;
 	void OnDisconnected(ConnectionStatus status) override;
 	void OnError(ConnectionStatus status) override;
 	static void WriteMessage(const std::string& message);

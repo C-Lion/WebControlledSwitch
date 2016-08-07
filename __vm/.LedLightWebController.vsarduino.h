@@ -112,4 +112,6 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <Util.h>
 #include <WebServer.cpp>
 #include <WebServer.h>
+#include <WiFiManager.cpp>
+#include <WiFiManager.h>
 #endif

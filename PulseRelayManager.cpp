@@ -4,7 +4,7 @@
 
 #include "PulseRelayManager.h"
 
-PulseRelayManager::PulseRelayManager(int pin, unsigned long pulseDelay /* = 1000 */) : RelayManager(pin), _pulseDelay(pulseDelay)
+PulseRelayManager::PulseRelayManager(int pin, unsigned long pulseDelay, std::function<void(const std::string &)> logger) : RelayManager(pin, logger), _pulseDelay(pulseDelay)
 {
 	pinMode(pin, OUTPUT);
 	digitalWrite(pin, LOW);
@@ -24,7 +24,7 @@ void PulseRelayManager::OnCommand(const std::string& commandName, int commandId)
 
 void PulseRelayManager::Loop()
 {
-	if (_startTime != 0 && millis() - _startTime <= _pulseDelay)
+	if (_startTime == 0 || (_startTime != 0 && millis() - _startTime <= _pulseDelay))
 		return;
 
 	RelayManager::Set(LOW); //end pulse

@@ -1,38 +1,8 @@
-// 
-// 
-// 
-
-
 #include "WebServer.h"
 
 using namespace std;
 
-std::map<int, WiFiStatus> ConnectionStatus::_statusMap =
-{
-	{ WL_CONNECTED, WiFiStatus::connected },
-	{ WL_NO_SHIELD, WiFiStatus::noShield },
-	{ WL_IDLE_STATUS, WiFiStatus::idle },
-	{ WL_NO_SSID_AVAIL, WiFiStatus::noSSID },
-	{ WL_SCAN_COMPLETED, WiFiStatus::scanCompleted },
-	{ WL_CONNECT_FAILED, WiFiStatus::connectFailed },
-	{ WL_CONNECTION_LOST, WiFiStatus::connectionLost },
-	{ WL_DISCONNECTED, WiFiStatus::dissconnected }
-};
-
-std::array<string, 8> ConnectionStatus::_messageMap =
-{
-	"Connected to a WiFi network",
-	"No WiFi shield is present",
-	"WiFi.begin(): Trying to connect to a WiFi network",
-	"No SSID are available",
-	"Scan networks is completed",
-	"The connection fails for all the attempts",
-	"The connection is lost",
-	"Disconnected from a network"
-};
-
-
-WebServer::WebServer(int port, const char *ssid, const char *password, const char *appKey) : 
+WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey) :
 	_server(port), 
 	_authorizedUrl(string("/") + appKey)
 {
@@ -41,8 +11,9 @@ WebServer::WebServer(int port, const char *ssid, const char *password, const cha
 	_server.on((_authorizedUrl + "/").c_str(), [this]() { HandleMain(); });
 	_server.onNotFound([this]() { HandleError(); });
 
-	WiFi.begin(ssid, password);
-	_lastConnectionStatus = WiFi.status();
+	wifiManager->RegisterClient([this](ConnectionStatus status) { UpdateStatus(status); });
+	
+	_lastConnectionStatus = wifiManager->GetStatus().WifiCode();
 }
 
 void WebServer::RegisterCommand(WebCommandPtr_t command)
@@ -106,50 +77,42 @@ bool WebServer::IsConnected() const
 void WebServer::Loop(int relayState)
 {
 	_relayState = relayState;
-
-	if (millis() % 1000 == 0) //update every second
-		UpdateStatus();
-
 	_server.handleClient();
 }
 
-void WebServer::UpdateStatus()
+void WebServer::UpdateStatus(ConnectionStatus status)
 {
-	auto currentStatus = WiFi.status();
-	if (_lastConnectionStatus == currentStatus) //no change
-		return;
-
 	bool hasNotified = false;
 
 	//Connection lost, notify once
-	if (_lastConnectionStatus == WL_CONNECTED && currentStatus != WL_CONNECTED)
+	if (_lastConnectionStatus == WL_CONNECTED && status.WifiCode() != WL_CONNECTED)
 	{
 		Notify([=](WebNotificationPtr_t subscriber)
 		{
-			subscriber->OnDisconnected(ConnectionStatus(currentStatus));
+			subscriber->OnDisconnected(status);
 		});
 		hasNotified = true;
 	}
 
-	if (_lastConnectionStatus != WL_CONNECTED && currentStatus == WL_CONNECTED) //new connection, notify once
+	if (_lastConnectionStatus != WL_CONNECTED &&  status.WifiCode() == WL_CONNECTED) //new connection, notify once
 	{
 		MDNS.begin("esp8266");
 		_server.begin();
 
 		Notify([=](WebNotificationPtr_t subscriber)
 		{
-			subscriber->OnConnected(ConnectionStatus(currentStatus), WiFi.localIP());
+			subscriber->OnConnected(status);
 		});
 		hasNotified = true;
 	}
-	_lastConnectionStatus = currentStatus;
+	_lastConnectionStatus = status.WifiCode();
 
 	if (hasNotified)
 		return;
 	//else error
 	Notify([=](WebNotificationPtr_t subscriber)
 	{
-		subscriber->OnError(ConnectionStatus(currentStatus));
+		subscriber->OnError(status);
 	});
 }
 
