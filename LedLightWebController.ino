@@ -92,6 +92,8 @@ void setup()
 #endif
 
 	server->Register(relayManager);
+
+	logger->TestLeds();
 }
 
 void loop()

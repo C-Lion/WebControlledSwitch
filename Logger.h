@@ -22,7 +22,8 @@ public:
 	void OnConnected(ConnectionStatus status, IPAddress ipAddress) override;
 	void OnDisconnected(ConnectionStatus status) override;
 	void OnError(ConnectionStatus status) override;
-	void WriteMessage(const std::string& message);
+	static void WriteMessage(const std::string& message);
+	void TestLeds();
 };
 
 typedef std::shared_ptr<Logger> LoggerPtr_t;

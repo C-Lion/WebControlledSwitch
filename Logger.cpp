@@ -10,7 +10,7 @@ Logger::Logger(int redLedPin, int greenLedPin, int baudRate /*= 115200*/): _ledL
 
 void Logger::OnCommand(const std::string & commandName, int commandId)
 {
-	string log(commandName + "command recieved");
+	string log(commandName + " command recieved");
 	Serial.println(log.c_str());
 	_ledLogger.BlinkGreen(commandId, 250);
 }
@@ -40,4 +40,10 @@ void Logger::OnError(ConnectionStatus status)
 void Logger::WriteMessage(const std::string& message)
 {
 	Serial.println(message.c_str());
+}
+
+void Logger::TestLeds()
+{
+	_ledLogger.BlinkGreen(3, 100);
+	_ledLogger.BlinkRed(3, 100);
 }
