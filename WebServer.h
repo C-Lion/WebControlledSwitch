@@ -13,6 +13,7 @@
 #include <memory>
 #include <functional>
 #include "WiFiManager.h"
+#include "Singleton.h"
 
 class IWebNotifications
 {
@@ -39,8 +40,9 @@ public:
 };
 typedef std::shared_ptr<IWebCommand> WebCommandPtr_t;
 
-class WebServer
+class WebServer : public Singleton<WebServer>
 {
+	friend class Singleton<WebServer>;
 private:
 	ESP8266WebServer _server;
 	std::vector<WebNotificationPtr_t> _subscribers;
@@ -53,9 +55,9 @@ private:
 	void SendBackHtml(const std::string &message);
 	void UpdateStatus(ConnectionStatus status);
 	std::string CreateUrl(const std::string &s) const;
+	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey);
 
  public:
-	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey);
 	void RegisterCommand(WebCommandPtr_t command);
 
 	template<typename T>

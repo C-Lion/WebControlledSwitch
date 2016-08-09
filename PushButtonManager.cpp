@@ -4,7 +4,6 @@
 
 #include "PushButtonManager.h"
 
-
 PushButtonManager::PushButtonManager(int pin, std::function<void(int)> onStateChanged, std::function<void()> onLongPress) 
 	: _pin(pin), _onStateChanged(onStateChanged), _onLongPress(onLongPress)
 {

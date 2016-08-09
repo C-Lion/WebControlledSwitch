@@ -6,6 +6,7 @@
 #include "arduino.h"
 #include <functional>
 #include <memory>
+#include "Singleton.h"
 
 class PushButtonManager
 {

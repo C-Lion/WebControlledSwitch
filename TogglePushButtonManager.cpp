@@ -1,8 +1,5 @@
-// 
-// 
-// 
-
 #include "TogglePushButtonManager.h"
+using namespace std;
 
 int TogglePushButtonManager::StateOnTrigger() const
 {

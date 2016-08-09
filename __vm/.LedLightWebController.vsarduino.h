@@ -91,6 +91,10 @@ extern "C" void __cxa_pure_virtual() {;}
 #define noInterrupts() cli()
 
 #include <LedLightWebController.ino>
+#include <AzureIoTHubHttpClient.cpp>
+#include <AzureIoTHubHttpClient.h>
+#include <AzureIoTHubManager.cpp>
+#include <AzureIoTHubManager.h>
 #include <Configuration.h>
 #include <LedsLogger.cpp>
 #include <LedsLogger.h>
@@ -106,6 +110,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <PushButtonManager.h>
 #include <RelayManager.cpp>
 #include <RelayManager.h>
+#include <Singleton.h>
 #include <TogglePushButtonManager.cpp>
 #include <TogglePushButtonManager.h>
 #include <Util.cpp>

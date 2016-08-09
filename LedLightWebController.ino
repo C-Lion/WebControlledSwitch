@@ -1,3 +1,8 @@
+#include "AzureIoTHubHttpClient.h"
+#include "Singleton.h"
+#include <iot_logging.h>
+#include <AzureIoTHubClient.h>
+#include <AzureIoTHub.h>
 #include <Arduino.h>
 #include "OnOffRelayManager.h"
 #include "PulseRelayManager.h"
@@ -7,6 +12,7 @@
 #include "Logger.h"
 #include "MementaryPushButtonManager.h"
 #include "TogglePushButtonManager.h"
+#include "AzureIoTHubManager.h"
 #include <memory>
 #include "Configuration.h"
 
@@ -74,22 +80,26 @@ WiFiManagerPtr_t wifiManager;
 WebServerPtr_t server;
 RelayManagerPtr_t relayManager;
 PushButtonManagerPtr_t pushButtonManager;
+AzureIoTHubManagerPtr_t azureIoTHubManager;
 
 void setup()
 {
-	logger = make_shared<Logger>(redLed, greenLed);
-	wifiManager = make_shared<WiFiManager>(SSID, password);
-	server = make_shared<WebServer>(wifiManager, 80, appKey);
+	logger = Logger::Create(redLed, greenLed, 115200);
+	wifiManager = WiFiManager::Create(SSID, password);
+	server = WebServer::Create(wifiManager, 80, appKey);
 	server->SetWebSiteHeader(string(webSiteHeader));
 	server->Register(logger);
+	//TODO: use the connection string from the ctor 
+	azureIoTHubManager = AzureIoTHubManager::Create(wifiManager, logger, azureIoTHubDeviceConnectionString);
+
 
 #ifdef PULSE_COMMAND
-	pushButtonManager = make_shared<MementaryPushButtonManager>(pushButton, &SwitchRelayState, &Reset);
-	relayManager = make_shared<PulseRelayManager>(relay, 1000, [=](const string &message) { logger->WriteMessage(message); });
+	pushButtonManager = MementaryPushButtonManager::Create(pushButton, &SwitchRelayState, &Reset);
+	relayManager = PulseRelayManager::Create(relay, 1000, [=](const string &message) { logger->WriteMessage(message); });
 	make_shared<WebCommand>(pulseMenuEntry, "Activate", server)->Register();
 #else
-	pushButtonManager = make_shared<TogglePushButtonManager>(pushButton, &SwitchRelayState, &Reset);
-	relayManager = make_shared<OnOffRelayManager>(relay, [=](const string &message) { logger->WriteMessage(message); });
+	pushButtonManager =TogglePushButtonManager::Create(pushButton, &SwitchRelayState, &Reset);
+	relayManager = OnOffRelayManager::Create(relay, [=](const string &message) { logger->WriteMessage(message); });
 	make_shared<WebCommand>(turnOnMenuEntry, "On", server)->Register();
 	make_shared<WebCommand>(turnOffMenuEntry, "Off", server)->Register();
 #endif
@@ -102,7 +112,9 @@ void setup()
 void loop()
 {
 	wifiManager->Loop();
-	server->Loop(relayManager->State());
+	auto relayState = relayManager->State();
+	server->Loop(relayState);
+	azureIoTHubManager->Loop(relayState);
 	logger->Loop();
 	pushButtonManager->Loop();
 	relayManager->Loop();

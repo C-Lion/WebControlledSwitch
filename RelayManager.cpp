@@ -1,9 +1,6 @@
-// 
-// 
-// 
-
 #include "RelayManager.h"
 #include <string>
+using namespace std;
 
 RelayManager::RelayManager(int pin, std::function<void(const std::string &)> logger) : _pin(pin), _state(LOW), _logger(logger)
 {

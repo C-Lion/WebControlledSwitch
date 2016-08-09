@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <functional>
+#include "Singleton.h"
 
 enum class WiFiStatus
 {
@@ -46,17 +47,18 @@ public:
 
 typedef std::function<void (ConnectionStatus)> wifiNotificarionFunc_t;
 
-class WiFiManager
+class WiFiManager : public Singleton<WiFiManager>
 {
+	friend class Singleton<WiFiManager>;
 private:
+
 	std::vector<wifiNotificarionFunc_t> _subscribers;
 	int _lastConnectionStatus;
 	
 	void UpdateStatus();
-
- public:
 	WiFiManager(const char *ssid, const char *password);
 
+ public:
 	void RegisterClient(wifiNotificarionFunc_t notification);
 	void NotifyAll(ConnectionStatus status) const;
 	bool IsConnected() const;

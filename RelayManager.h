@@ -5,6 +5,8 @@
 #include "arduino.h"
 #include "WebServer.h"
 #include <functional>
+#include "Singleton.h"
+
 
 class RelayManager : public IWebNotifications
 {
@@ -13,8 +15,11 @@ private:
 	int _state;
 	std::function<void (const std::string &)> _logger;
 
+protected:
+	RelayManager(int pin, std::function<void(const std::string &)> logger);
+
  public:
-	RelayManager(int pin, std::function<void (const std::string &)> logger);
+
 	virtual void Set(int value);
 	int State() const { return _state; }
 

@@ -8,25 +8,30 @@
 #include "WebServer.h"
 #include <memory>
 #include <string>
+#include "Singleton.h"
 
-class Logger : public IWebNotifications
+
+class Logger : public IWebNotifications, public Singleton<Logger>
 {
+	friend class Singleton<Logger>;
 private:
-	LedsLogger _ledLogger;
-
+	LedsLoggerPtr_t _ledsLogger;
+	Logger(int redLedPin, int greenLedPin, int baudRate);
 public:
-	Logger(int redLedPin, int greenLedPin, int baudRate = 115200);
-
-	void Loop() { _ledLogger.Loop(); }
+	void Loop() { _ledsLogger->Loop(); }
 	void OnCommand(const std::string & commandName, int commandId) override;
 	void OnConnected(ConnectionStatus status) override;
 	void OnDisconnected(ConnectionStatus status) override;
 	void OnError(ConnectionStatus status) override;
+	void WriteErrorMessage(const std::string &message, int blinks);
 	static void WriteMessage(const std::string& message);
+	template<typename T>
+	static void WriteMessage(const T& message) { Serial.println(message); }
 	void TestLeds();
 };
 
 typedef std::shared_ptr<Logger> LoggerPtr_t;
+
 
 #endif
 
