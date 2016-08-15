@@ -33,16 +33,22 @@ class ConnectionStatus
 private:
 	const int _status;
 	const IPAddress _localIP;
+	bool _justConnected;
+	bool _justDissconnected;
 	static std::map<int, WiFiStatus> _statusMap;
 	static std::array<std::string, 8> _messageMap;
 
-	ConnectionStatus(int status, IPAddress localIP) : _status(status), _localIP(localIP) {}
+	ConnectionStatus(int status, IPAddress localIP, bool justConnected = false, bool justDissconnected = false) : _status(status), _localIP(localIP), _justConnected(justConnected), _justDissconnected(justDissconnected)
+	{}
 
 public:
 	int WifiCode() const { return _status; }
 	WiFiStatus Code() const { return _statusMap[_status]; }
 	const std::string &Message() const {return _messageMap[_status];}
 	IPAddress LocalIP() const { return _localIP; }
+	bool IsJustConnected() const { return _justConnected; }
+	bool IsJustDissconnected() const { return _justDissconnected; }
+	bool IsConnected() const { return _status == WL_CONNECTED; }
 };
 
 typedef std::function<void (ConnectionStatus)> wifiNotificarionFunc_t;
@@ -56,11 +62,11 @@ private:
 	int _lastConnectionStatus;
 	
 	void UpdateStatus();
+	void NotifyAll(ConnectionStatus status) const;
 	WiFiManager(const char *ssid, const char *password);
 
  public:
 	void RegisterClient(wifiNotificarionFunc_t notification);
-	void NotifyAll(ConnectionStatus status) const;
 	bool IsConnected() const;
 	void Loop();
 	ConnectionStatus GetStatus() const;

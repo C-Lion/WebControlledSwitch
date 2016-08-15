@@ -133,6 +133,7 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MementaryPushButtonManager.h" />
     <ClInclude Include="OnOffRelayManager.h" />
+    <ClInclude Include="PubSub.h" />
     <ClInclude Include="PulseRelayManager.h" />
     <ClInclude Include="PushButtonManager.h" />
     <ClInclude Include="RelayManager.h" />

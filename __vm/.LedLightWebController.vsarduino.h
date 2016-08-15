@@ -104,6 +104,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <MementaryPushButtonManager.h>
 #include <OnOffRelayManager.cpp>
 #include <OnOffRelayManager.h>
+#include <PubSub.h>
 #include <PulseRelayManager.cpp>
 #include <PulseRelayManager.h>
 #include <PushButtonManager.cpp>
