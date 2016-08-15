@@ -3,12 +3,11 @@
 #ifndef _RELAYMANAGER_h
 #define _RELAYMANAGER_h
 #include "arduino.h"
-#include "WebServer.h"
 #include <functional>
 #include "Singleton.h"
 
 
-class RelayManager : public IWebNotifications
+class RelayManager 
 {
 private:
 	int _pin;
@@ -19,14 +18,10 @@ protected:
 	RelayManager(int pin, std::function<void(const std::string &)> logger);
 
  public:
-
+	virtual ~RelayManager()	{}
+	virtual void OnCommand(const std::string & commandName, int commandId) = 0;
 	virtual void Set(int value);
 	int State() const { return _state; }
-
-	void OnCommand(const std::string & commandName, int commandId) override = 0;
-	void OnConnected(ConnectionStatus status) override {}
-	void OnDisconnected(ConnectionStatus status) override {}
-	void OnError(ConnectionStatus status) override {}
 	virtual void Loop() {}
 };
 

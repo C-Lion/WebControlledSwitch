@@ -12,8 +12,6 @@ WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey)
 	_server.onNotFound([this]() { HandleError(); });
 
 	wifiManager->RegisterClient([this](ConnectionStatus status) { UpdateStatus(status); });
-	
-	_lastConnectionStatus = wifiManager->GetStatus().WifiCode();
 }
 
 void WebServer::RegisterCommand(WebCommandPtr_t command)
@@ -52,21 +50,8 @@ void WebServer::HandleMain()
 void WebServer::HandleCommand(WebCommandPtr_t webCommand)
 {
 	auto html = string("<p><h3>") + webCommand->ResultHTML() +string("</h3></p>");
-	Notify([=](WebNotificationPtr_t subscriber) {subscriber->OnCommand(webCommand->Name(), webCommand->Id()); });
+	_pubsub.NotifyAll(webCommand->Name(), webCommand->Id());
 	SendBackHtml(html);
-}
-
-void WebServer::Notify(function<void(WebNotificationPtr_t)> callBack)
-{
-	for (auto subscriber : _subscribers)
-	{
-		callBack(subscriber);
-	}
-}
-
-void WebServer::Register(WebNotificationPtr_t subscriber)
-{
-	_subscribers.push_back(subscriber);
 }
 
 bool WebServer::IsConnected() const
@@ -82,38 +67,12 @@ void WebServer::Loop(int relayState)
 
 void WebServer::UpdateStatus(ConnectionStatus status)
 {
-	bool hasNotified = false;
-
-	//Connection lost, notify once
-	if (_lastConnectionStatus == WL_CONNECTED && status.WifiCode() != WL_CONNECTED)
+	if (!_isInit && status.IsJustConnected()) //new connection, only once
 	{
-		Notify([=](WebNotificationPtr_t subscriber)
-		{
-			subscriber->OnDisconnected(status);
-		});
-		hasNotified = true;
-	}
-
-	if (_lastConnectionStatus != WL_CONNECTED &&  status.WifiCode() == WL_CONNECTED) //new connection, notify once
-	{
+		_isInit = true;
 		MDNS.begin("esp8266");
 		_server.begin();
-
-		Notify([=](WebNotificationPtr_t subscriber)
-		{
-			subscriber->OnConnected(status);
-		});
-		hasNotified = true;
 	}
-	_lastConnectionStatus = status.WifiCode();
-
-	if (hasNotified)
-		return;
-	//else error
-	Notify([=](WebNotificationPtr_t subscriber)
-	{
-		subscriber->OnError(status);
-	});
 }
 
 std::string WebServer::CreateUrl(const std::string& s) const

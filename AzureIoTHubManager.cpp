@@ -3,18 +3,13 @@
 
 using namespace std;
 
-AzureIoTHubManager::AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t logger, const char* connectionString) : _iotHubClient(_sslWiFiClient), _logger(logger)
+WiFiClientSecure AzureIoTHubManager::_sslWiFiClient;
+AzureIoTHubClient AzureIoTHubManager::_iotHubClient(_sslWiFiClient);
+
+AzureIoTHubManager::AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t logger, const char* connectionString) :  _logger(logger), _azureIoTHubDeviceConnectionString(connectionString)
 {
-	configTime(0, 0, "pool.ntp.org", "time.nist.gov");
 	wifiManager->RegisterClient([this](ConnectionStatus status) { UpdateStatus(status); });
 }
-
-
-void AzureIoTHubManager::RegisterCommand(IAzureIoTHubCommandNotificationPtr_t command)
-{
-	_subscribers.push_back(command);
-}
-
 
 void AzureIoTHubManager::HandleCommand(const std::string & commandName, int commandId, const char *logInfo) const
 {
@@ -22,39 +17,34 @@ void AzureIoTHubManager::HandleCommand(const std::string & commandName, int comm
 	_logger->WriteMessage(commandName);
 	_logger->WriteMessage(" from Azure IoTHub with log information: ");
 	_logger->WriteMessage(logInfo);
-	NotifyAll([=](IAzureIoTHubCommandNotificationPtr_t subscriber) {subscriber->OnCommand(commandName, commandId); });
+	_pubsub.NotifyAll(commandName, commandId);
 }
 
-void AzureIoTHubManager::NotifyAll(function<void(IAzureIoTHubCommandNotificationPtr_t)> callBack) const
-{
-	for (auto subscriber : _subscribers)
-	{
-		callBack(subscriber);
-	}
-}
 
 bool AzureIoTHubManager::CheckTimeInitiated()
 {
-	if (_isTimeInitiated)
+	if ( _isTimeInitiated)
 		return true;
-
+	
+	if (_IsInitTime == false)
+		return false;
+	
 	time_t epochTime;
 
-	epochTime = time(NULL);
+	epochTime = time(nullptr);
 
 	if (epochTime == 0)
 	{
 		_logger->WriteErrorMessage("Fetching NTP epoch time failed!", 5);
-		delay(300);
+		delay(100);
+		return false;
 	}
-	else
-	{
-		_logger->WriteMessage("Fetched NTP epoch time is: ");
-		_logger->WriteMessage(epochTime);
-		_isTimeInitiated = true;
-
-		_iotHubClient.begin(); //begins after setting the time
-	}
+	//else
+	
+	_logger->WriteMessage("Fetched NTP epoch time is: ");
+	_logger->WriteMessage(epochTime);
+	_isTimeInitiated = true;
+	return true;
 }
 
 bool AzureIoTHubManager::CheckIoTHubClientInitiated()
@@ -62,23 +52,34 @@ bool AzureIoTHubManager::CheckIoTHubClientInitiated()
 	if (_isIotHubClientInitiated)
 		return true;
 
-	if (!InitAzureIoTHubClient())
+	_iotHubClient.begin();
+
+	if (!AzureIoTHubInit(_azureIoTHubDeviceConnectionString))
 		return false;
-	
 	_isIotHubClientInitiated = true;
 	return true;
 }
 
 
-void AzureIoTHubManager::Loop(int relayState)
+
+void AzureIoTHubManager::Loop()
 {
 	if (CheckTimeInitiated() == false) //can't do anything before setting the time
 		return;
 	if (CheckIoTHubClientInitiated() == false)
 		return;
 
-	_relayState = relayState;
-	AzureIoTHubClientLoop(_relayState);
+
+	if ((millis() - _loopStartTime) < 500)
+		return;
+	_loopStartTime = millis();
+	AzureIoTHubLoop();
+}
+
+void AzureIoTHubManager::UpdateRelayState( char *deviceId, int state) const
+{
+	if (_isIotHubClientInitiated)
+		AzureIoTHubSendMessage(deviceId, state, 1);
 }
 
 void AzureIoTHubManager::OnActivate(const char* logInfo) const
@@ -98,37 +99,11 @@ void AzureIoTHubManager::OnTurnOff(const char* logInfo) const
 
 void AzureIoTHubManager::UpdateStatus(ConnectionStatus status)
 {
-	//bool hasNotified = false;
-
-	////Connection lost, notify once
-	//if (_lastConnectionStatus == WL_CONNECTED && status.WifiCode() != WL_CONNECTED)
-	//{
-	//	Notify([=](WebNotificationPtr_t subscriber)
-	//	{
-	//		subscriber->OnDisconnected(status);
-	//	});
-	//	hasNotified = true;
-	//}
-
-	//if (_lastConnectionStatus != WL_CONNECTED &&  status.WifiCode() == WL_CONNECTED) //new connection, notify once
-	//{
-	//	_iotHubClient.begin();
-
-	//	Notify([=](WebNotificationPtr_t subscriber)
-	//	{
-	//		subscriber->OnConnected(status);
-	//	});
-	//	hasNotified = true;
-	//}
-	//_lastConnectionStatus = status.WifiCode();
-
-	//if (hasNotified)
-	//	return;
-	////else error
-	//Notify([=](WebNotificationPtr_t subscriber)
-	//{
-	//	subscriber->OnError(status);
-	//});
+	if (status.IsJustConnected() && !_IsInitTime) //new connection, only once
+	{
+		configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+		_IsInitTime = true;
+	}
 }
 
 

@@ -9,29 +9,15 @@
 #define ARDUINO_BOARD "generic"
 #include <ESP8266mDNS.h>
 #include <string>
-#include <vector>
 #include <memory>
-#include <functional>
 #include "WiFiManager.h"
 #include "Singleton.h"
-
-class IWebNotifications
-{
-public:
-	virtual void OnCommand(const std::string & commandName, int commandId) = 0;
-	virtual void OnConnected(ConnectionStatus status) = 0;
-	virtual void OnDisconnected(ConnectionStatus status) = 0;
-	virtual void OnError(ConnectionStatus status) = 0;
-
-	virtual ~IWebNotifications() {	}
-};
-typedef std::shared_ptr<IWebNotifications> WebNotificationPtr_t;
-
+#include "PubSub.h"
 class IWebCommand
 {
 public:
 	virtual const std::string& Name() const = 0;
-	virtual const int Id() const = 0;
+	virtual int Id() const = 0;
 	virtual const std::string& MenuEntry() const = 0; 
 	virtual const std::string& ResultHTML() const = 0;
 	virtual const std::string& TriggerUrl() const = 0;
@@ -39,18 +25,18 @@ public:
 	virtual ~IWebCommand() {}
 };
 typedef std::shared_ptr<IWebCommand> WebCommandPtr_t;
-
+typedef std::function<void(const std::string&, int)> WebNotificationPtr_t;
 class WebServer : public Singleton<WebServer>
 {
 	friend class Singleton<WebServer>;
 private:
 	ESP8266WebServer _server;
-	std::vector<WebNotificationPtr_t> _subscribers;
+	PubSub<WebServer, const std::string&, int> _pubsub;
 	bool _relayState = false;
 	std::string _header;
 	const std::string _authorizedUrl;
 	std::vector<WebCommandPtr_t> _webCommands;
-	int _lastConnectionStatus;
+	bool _isInit = false;
 
 	void SendBackHtml(const std::string &message);
 	void UpdateStatus(ConnectionStatus status);
@@ -64,9 +50,8 @@ private:
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	void HandleMain();
 	void HandleError();
-	void Notify(std::function<void (WebNotificationPtr_t)> callBack);
 	void HandleCommand(WebCommandPtr_t webCommand);
-	void Register(WebNotificationPtr_t subscriber);
+	void Register(WebNotificationPtr_t subscriber) { _pubsub.Register(subscriber); }
 	bool IsConnected() const;
 	void Loop(int relayState);
 };

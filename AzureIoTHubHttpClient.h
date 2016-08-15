@@ -3,8 +3,16 @@
 #ifndef _AZUREIOTHUBHTTPCLIENT_h
 #define _AZUREIOTHUBHTTPCLIENT_h
 
-#include "arduino.h"
-bool InitAzureIoTHubClient(void);
-bool AzureIoTHubClientLoop(int deviceStatus);
+#ifdef __cplusplus
+extern "C" {
+#endif
+	void AzureIoTHubLoop(void);
+	bool AzureIoTHubInit(const char *connectionString);
+	bool AzureIoTHubSendMessage(char *deviceId, int status, int messageId);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 

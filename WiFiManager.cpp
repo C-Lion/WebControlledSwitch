@@ -61,9 +61,12 @@ void WiFiManager::UpdateStatus()
 	auto currentStatus = WiFi.status();
 	if (_lastConnectionStatus == currentStatus) //no change
 		return;
-
+	
+	bool justConnected = _lastConnectionStatus != WL_CONNECTED &&  currentStatus == WL_CONNECTED;
+	bool justDissconnected = _lastConnectionStatus == WL_CONNECTED && currentStatus != WL_CONNECTED;
+	
 	_lastConnectionStatus = currentStatus;
-	NotifyAll(GetStatus());
+	NotifyAll(ConnectionStatus(WiFi.status(), WiFi.localIP(), justConnected, justDissconnected));
 }
 
 ConnectionStatus WiFiManager::GetStatus() const

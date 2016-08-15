@@ -66,6 +66,9 @@
     <ClInclude Include="AzureIoTHubHttpClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PubSub.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WebServer.cpp">
