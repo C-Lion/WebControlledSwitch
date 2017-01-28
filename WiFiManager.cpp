@@ -26,11 +26,48 @@ std::array<string, 8> ConnectionStatus::_messageMap =
 	"The connection is lost",
 	"Disconnected from a network"
 };
+std::list<AccessPointInfo> ConnectionStatus::_accessPointList;
 
-WiFiManager::WiFiManager(const char *ssid, const char *password)
+WiFiManager::WiFiManager(const std::string &ssid, const std::string &password, bool isAccessPointMode)
 {
-	WiFi.begin(ssid, password);
-	_lastConnectionStatus = WiFi.status();
+	if (isAccessPointMode)
+	{
+		WiFi.mode(WIFI_AP);
+		WiFi.disconnect();
+		delay(100);
+
+		int n = WiFi.scanNetworks();
+		Serial.println("scan done");
+		if (n == 0)
+			Serial.println("no networks found");
+		else
+		{
+			Serial.print(n);
+			Serial.println(" networks found");
+			for (int i = 0; i < n; ++i)
+			{
+				ConnectionStatus::AddAccessPointInfo(AccessPointInfo{ std::string(WiFi.SSID(i).c_str()), WiFi.RSSI(i) ,WiFi.encryptionType(i) == ENC_TYPE_NONE });
+			}
+		}
+		Serial.println("Setting access point mode to ap name: ");
+		Serial.print(ssid.c_str());
+		Serial.print("  ap password: ");
+		Serial.println(password.c_str());
+
+		WiFi.softAP(ssid.c_str(), password.c_str(), 6);
+		Serial.println("softap up and running");
+
+		IPAddress myIP = WiFi.softAPIP();
+		Serial.print("AP IP address: ");
+		Serial.println(myIP);
+		_accessPointMode = true;
+	}
+	else
+	{
+		WiFi.mode(WIFI_STA);
+		WiFi.begin(ssid.c_str(), password.c_str());
+		_lastConnectionStatus = WiFi.status();
+	}
 }
 
 void WiFiManager::RegisterClient(wifiNotificarionFunc_t notification)
@@ -48,7 +85,7 @@ void WiFiManager::NotifyAll(ConnectionStatus status) const
 
 bool WiFiManager::IsConnected() const
 {
-	return WiFi.status() == WL_CONNECTED;
+	return _accessPointMode || WiFi.status() == WL_CONNECTED;
 }
 
 void WiFiManager::Loop()
@@ -58,6 +95,13 @@ void WiFiManager::Loop()
 
 void WiFiManager::UpdateStatus()
 {
+	if (_accessPointMode && !_accessPointModeHasBeenInit) //first time init access point mode
+	{
+		_accessPointModeHasBeenInit = true;
+		NotifyAll(ConnectionStatus(WiFi.status(), WiFi.localIP(), true, false, true));
+		return;
+	}
+
 	auto currentStatus = WiFi.status();
 	if (_lastConnectionStatus == currentStatus) //no change
 		return;

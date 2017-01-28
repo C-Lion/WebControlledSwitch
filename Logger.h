@@ -9,19 +9,21 @@
 #include <memory>
 #include <string>
 #include "Singleton.h"
+#include "ArduinoLoopManager.h"
 
-
-class Logger : public Singleton<Logger>
+class Logger : public Singleton<Logger>, public IProcessor
 {
 	friend class Singleton<Logger>;
 private:
 	LedsLoggerPtr_t _ledsLogger;
 	Logger(int redLedPin, int greenLedPin, int baudRate);
 public:
-	void Loop() const{ _ledsLogger->Loop(); }
+	void Loop() override { _ledsLogger->Loop(); }
 	void OnCommand(const std::string & commandName, int commandId) const;
 	void WriteErrorMessage(const std::string &message, int blinks) const;
 	void OnWiFiStatusChanged(const ConnectionStatus& status) const;
+	void OnLongButtonPressDetection() const;
+	void OnVeryLongButtonPressDetection() const;
 	static void WriteMessage(const std::string& message);
 	template<typename T>
 	static void WriteMessage(const T& message) { Serial.println(message); }

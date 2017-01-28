@@ -14,6 +14,8 @@
 #include <memory>
 #include <functional>
 #include "Singleton.h"
+#include "ArduinoLoopManager.h"
+#include <list>
 
 enum class WiFiStatus
 {
@@ -27,6 +29,13 @@ enum class WiFiStatus
 	dissconnected = 7,		// assigned when disconnected from a network;
 };
 
+struct AccessPointInfo
+{
+	std::string SSID;
+	int RSSI;
+	bool isEncripted;
+};
+
 class ConnectionStatus
 {
 	friend class WiFiManager;
@@ -35,10 +44,17 @@ private:
 	const IPAddress _localIP;
 	bool _justConnected;
 	bool _justDissconnected;
+	bool _isAccessMode;
+
 	static std::map<int, WiFiStatus> _statusMap;
 	static std::array<std::string, 8> _messageMap;
+	static std::list<AccessPointInfo> _accessPointList;
 
-	ConnectionStatus(int status, IPAddress localIP, bool justConnected = false, bool justDissconnected = false) : _status(status), _localIP(localIP), _justConnected(justConnected), _justDissconnected(justDissconnected)
+	static void ClearAccessPointList() { _accessPointList.clear(); }
+	template<typename T>
+	static void AddAccessPointInfo(T &&apInfo) { _accessPointList.push_back(std::forward<T>(apInfo)); }
+
+	ConnectionStatus(int status, IPAddress localIP, bool justConnected = false, bool justDissconnected = false, bool isAccessMode = false) : _status(status), _localIP(localIP), _justConnected(justConnected), _justDissconnected(justDissconnected), _isAccessMode(isAccessMode)
 	{}
 
 public:
@@ -49,26 +65,30 @@ public:
 	bool IsJustConnected() const { return _justConnected; }
 	bool IsJustDissconnected() const { return _justDissconnected; }
 	bool IsConnected() const { return _status == WL_CONNECTED; }
+	bool IsAccessModeOn() const { return _isAccessMode; }
+	static const std::list<AccessPointInfo> &GetAccessPoints() { return _accessPointList; }
 };
 
 typedef std::function<void (ConnectionStatus)> wifiNotificarionFunc_t;
 
-class WiFiManager : public Singleton<WiFiManager>
+class WiFiManager : public Singleton<WiFiManager>, public IProcessor
 {
 	friend class Singleton<WiFiManager>;
 private:
 
 	std::vector<wifiNotificarionFunc_t> _subscribers;
 	int _lastConnectionStatus;
-	
+	bool _accessPointMode = false;
+	bool _accessPointModeHasBeenInit = false;
+
 	void UpdateStatus();
 	void NotifyAll(ConnectionStatus status) const;
-	WiFiManager(const char *ssid, const char *password);
+	WiFiManager(const std::string &ssid, const std::string &password, bool isAccesspointMode);
 
  public:
 	void RegisterClient(wifiNotificarionFunc_t notification);
 	bool IsConnected() const;
-	void Loop();
+	void Loop() override;
 	ConnectionStatus GetStatus() const;
 };
 

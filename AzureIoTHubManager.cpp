@@ -13,9 +13,9 @@ AzureIoTHubManager::AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t
 
 void AzureIoTHubManager::HandleCommand(const std::string & commandName, int commandId, const char *logInfo) const
 {
-	_logger->WriteMessage("Recieved command: ");
+	_logger->WriteMessage("Received command: ");
 	_logger->WriteMessage(commandName);
-	_logger->WriteMessage(" from Azure IoTHub with log information: ");
+	_logger->WriteMessage("From Azure IoTHub with log information: ");
 	_logger->WriteMessage(logInfo);
 	_pubsub.NotifyAll(commandName, commandId);
 }

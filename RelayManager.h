@@ -5,9 +5,9 @@
 #include "arduino.h"
 #include <functional>
 #include "Singleton.h"
+#include "ArduinoLoopManager.h"
 
-
-class RelayManager 
+class RelayManager : public IProcessor
 {
 private:
 	int _pin;
@@ -22,7 +22,7 @@ protected:
 	virtual void OnCommand(const std::string & commandName, int commandId) = 0;
 	virtual void Set(int value);
 	int State() const { return _state; }
-	virtual void Loop() {}
+	void Loop() override {}
 };
 
 typedef std::shared_ptr<RelayManager> RelayManagerPtr_t;

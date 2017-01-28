@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="AzureIoTHubManager">
+    <Position X="5" Y="5" Width="3.25" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>IAAAAAAMAAAEAACAADCACAgAIDEBSAGAAAAACAEAAAA=</HashCode>
+      <FileName>AzureIoTHubManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Logger">
+    <Position X="3.5" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAIAAAACEQAAABIQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Logger.h</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_ledsLogger" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MementaryPushButtonManager">
+    <Position X="6" Y="11.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MementaryPushButtonManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="OnOffRelayManager">
+    <Position X="0.5" Y="11.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>OnOffRelayManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PulseRelayManager">
+    <Position X="3.25" Y="11.5" Width="2.25" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIIAAABAAAAAAAAAAQAAAAAAAAABAAAAAIAAA=</HashCode>
+      <FileName>PulseRelayManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PushButtonManager">
+    <Position X="8.5" Y="8.5" Width="2" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AEAQEAAIAAAAAAAgAAAACAAAgAAAAAAAAAAEBAAACQA=</HashCode>
+      <FileName>PushButtonManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RelayManager">
+    <Position X="2" Y="8.5" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAABAAgAAAACAAQIAAAAAAAAAAABIAAQAA=</HashCode>
+      <FileName>RelayManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TogglePushButtonManager">
+    <Position X="9.5" Y="11.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>TogglePushButtonManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WebServer">
+    <Position X="8.75" Y="2.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAACAgAcAAAAAEBAwBAAAAACiAEBAACAAAAAAAAAABA=</HashCode>
+      <FileName>WebServer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="IWebCommand">
+    <Position X="6.5" Y="2.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAEAAAAAQAAAAAAAAAAAAAgAAAAkA=</HashCode>
+      <FileName>WebServer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WiFiManager">
+    <Position X="2.5" Y="5" Width="2" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAMAAAAAABAAAAAAAAEAAAIAAAAAAQACCgAAAA=</HashCode>
+      <FileName>WiFiManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LedsLogger">
+    <Position X="0.5" Y="2.25" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="LedsLogger::Led">
+        <Compartments>
+          <Compartment Name="Fields" Collapsed="true" />
+        </Compartments>
+        <TypeIdentifier>
+          <NewMemberFileName>LedsLogger.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>BQAAAAAIAgBAAAAAAAAAAAAAAAAAAQAAAABAAAAAACA=</HashCode>
+      <FileName>LedsLogger.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Typedef Name="LedsLoggerPtr_t" Collapsed="true">
+    <Position X="0.75" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>LedsLogger.h</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Font Name="Segoe UI" Size="10" />
+</ClassDiagram>
