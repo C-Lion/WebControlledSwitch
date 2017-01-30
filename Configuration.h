@@ -4,10 +4,12 @@
 #define _CONFIGURATION_h
 
 //Wifi Configuration
-static const char *SSID = "[your wifi access point ssid]";
-static const char *password = "[your wifi access point password]";
-static const char *webSiteHeader = "Welcome to the web light switch Server";
-static const char *appKey = "[your secret app key]"; 
+static const char *SSID = "AlonIoT"; //The default configuration access point ssid
+static const char *password = "12345678"; //The default configuration access point password - at least 8 chars
+static const char *webSiteHeader = "Welcome to the web light switch server";
+static const char *appKey = "appkey"; //your secret app key - should be long enough
+static const char* azureIoTHubDeviceConnectionString = "HostName=[IoTHub].azure-devices.net;DeviceId=[MyLightSwitch];SharedAccessKey=k6UElnivbQgrFGD86LSTPNRmV36cpKMe1OOH5LMc/42k=";
+static char* deviceId = "MyLightSwitch";
 
 static const char *turnOnMenuEntry = "Turn On";
 static const char *turnOffMenuEntry = "Turn Off";
@@ -23,12 +25,6 @@ static const char *pulseMenuEntry = "Activate";
 //https://azure.microsoft.com/en-us/documentation/articles/iot-hub-device-sdk-c-intro/
 //uncomment this line to use Azure IoT Hub in addition to the web server
 //#define USEAZUREIOTHUB
-
-#ifdef USEAZUREIOTHUB
-//Create this using IoT Hub Device Explorer: https://github.com/Azure/azure-iot-sdks/blob/master/doc/manage_iot_hub.md
-static const char* azureIoTHubDeviceConnectionString = "HostName=[YourIoTHubName].azure-devices.net;DeviceId=[YourDeviceId];SharedAccessKey=[DeviceAccessKey]";
-static char* deviceId = "[YourDeviceId]";
-#endif
 
 #endif
 

@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="LedLightWebController.ino" />
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.LedLightWebController.vsarduino.h">
@@ -69,6 +70,12 @@
     <ClInclude Include="PubSub.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ArduinoLoopManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PasswordManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WebServer.cpp">
@@ -108,6 +115,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AzureIoTHubHttpClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PasswordManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

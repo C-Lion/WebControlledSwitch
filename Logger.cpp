@@ -23,6 +23,13 @@ void Logger::WriteErrorMessage(const std::string& message, int blinks) const
 void Logger::OnWiFiStatusChanged(const ConnectionStatus& status) const
 {
 	Serial.println(status.Message().c_str());
+
+	if (status.IsAccessModeOn())
+	{
+		_ledsLogger->BlinkGreen(1000000, 100);
+		_ledsLogger->BlinkRed(1000000, 100);
+		return;
+	}
 	if (status.IsJustConnected())
 	{
 		Serial.print("IP address: ");
@@ -33,6 +40,18 @@ void Logger::OnWiFiStatusChanged(const ConnectionStatus& status) const
 
 	if (!status.IsConnected())
 		_ledsLogger->BlinkRed(3 + status.WifiCode(), 250);
+}
+
+void Logger::OnLongButtonPressDetection() const
+{
+	_ledsLogger->BlinkGreen(100, 30);
+	_ledsLogger->BlinkRed(100, 30);
+}
+
+void Logger::OnVeryLongButtonPressDetection() const
+{
+	_ledsLogger->BlinkGreen(100, 15);
+	_ledsLogger->BlinkRed(100, 15);
 }
 
 void Logger::WriteMessage(const std::string& message)

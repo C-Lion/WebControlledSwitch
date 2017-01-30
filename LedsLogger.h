@@ -3,8 +3,9 @@
 #include "arduino.h"
 #include <memory>
 #include "Singleton.h"
+#include "ArduinoLoopManager.h"
 
-class LedsLogger : public Singleton<LedsLogger>
+class LedsLogger : public Singleton<LedsLogger>, public IProcessor
 {
  private:
 	 friend class Singleton<LedsLogger>;
@@ -35,7 +36,7 @@ class LedsLogger : public Singleton<LedsLogger>
 	 void BlinkGreen(int times, int delay) { _green.Blink(times, delay); }
 	 void SetRed(int value) { _red.Set(value); }
 	 void SetGreen(int value) { _green.Set(value); }
-	 void Loop() 
+	 void Loop() override
 	 { //call this function in a tight interval
 		 _red.Update();
 		 _green.Update();

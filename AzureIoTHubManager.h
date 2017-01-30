@@ -12,11 +12,12 @@
 #include <stdlib.h>
 #include "Logger.h"
 #include "Singleton.h"
+#include "ArduinoLoopManager.h"
 
 class SwitchController;
 
 typedef std::function<void(const std::string&, int)> IAzureIoTHubCommandNotificationPtr_t;
-class AzureIoTHubManager : public Singleton<AzureIoTHubManager>
+class AzureIoTHubManager : public Singleton<AzureIoTHubManager>, public IProcessor
 {
 	friend class Singleton<AzureIoTHubManager>;
 	friend EXECUTE_COMMAND_RESULT Activate(SwitchController* device, char *logInfo);
@@ -45,7 +46,7 @@ private:
 	
  public:
 	void Register(WebNotificationPtr_t subscriber) { _pubsub.Register(subscriber); }
-	void Loop();
+	void Loop() override;
 	void UpdateRelayState(char *deviceId, int state) const;
 };
 

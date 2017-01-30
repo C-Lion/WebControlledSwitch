@@ -13,6 +13,8 @@
 #include "WiFiManager.h"
 #include "Singleton.h"
 #include "PubSub.h"
+#include "ArduinoLoopManager.h"
+
 class IWebCommand
 {
 public:
@@ -26,7 +28,7 @@ public:
 };
 typedef std::shared_ptr<IWebCommand> WebCommandPtr_t;
 typedef std::function<void(const std::string&, int)> WebNotificationPtr_t;
-class WebServer : public Singleton<WebServer>
+class WebServer : public Singleton<WebServer>, public IProcessor
 {
 	friend class Singleton<WebServer>;
 private:
@@ -37,23 +39,29 @@ private:
 	const std::string _authorizedUrl;
 	std::vector<WebCommandPtr_t> _webCommands;
 	bool _isInit = false;
-
+	std::function<bool()> _relayStateUpdater;
+	std::function<void(const std::string&, const std::string&)> _accessPointCredentioalUpdater;
 	void SendBackHtml(const std::string &message);
 	void UpdateStatus(ConnectionStatus status);
 	std::string CreateUrl(const std::string &s) const;
-	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey);
+	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::function<bool()> relayStateUpdater);
 
  public:
+	
 	void RegisterCommand(WebCommandPtr_t command);
 
 	template<typename T>
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	void HandleMain();
+	void HandleSetup();
+	void HandleSetAccessPoint();
+	void HandleResetAccessPoint();
 	void HandleError();
 	void HandleCommand(WebCommandPtr_t webCommand);
 	void Register(WebNotificationPtr_t subscriber) { _pubsub.Register(subscriber); }
 	bool IsConnected() const;
-	void Loop(int relayState);
+	void Loop();
+	void SetUpdateAccessPointCredentials(std::function<void (const std::string&, const std::string&)> accessPointCredentioalUpdater);
 };
 
 typedef std::shared_ptr<WebServer> WebServerPtr_t;

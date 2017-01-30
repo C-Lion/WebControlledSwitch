@@ -28,6 +28,7 @@
 #define __arm__
 #define __inline__
 #define __asm__(x)
+#define __asm__
 #define __extension__
 #define __ATTR_PURE__
 #define __ATTR_CONST__
@@ -77,7 +78,10 @@ typedef int __gnuc_va_list;
 typedef unsigned char byte;
 extern "C" void __cxa_pure_virtual() {;}
 
+
 #include "new"
+#include "Esp.h"
+
 
 #include <arduino.h>
 #include <pins_arduino.h> 
@@ -90,34 +94,5 @@ extern "C" void __cxa_pure_virtual() {;}
 #define interrupts() sei()
 #define noInterrupts() cli()
 
-#include <LedLightWebController.ino>
-#include <AzureIoTHubHttpClient.cpp>
-#include <AzureIoTHubHttpClient.h>
-#include <AzureIoTHubManager.cpp>
-#include <AzureIoTHubManager.h>
-#include <Configuration.h>
-#include <LedsLogger.cpp>
-#include <LedsLogger.h>
-#include <Logger.cpp>
-#include <Logger.h>
-#include <MementaryPushButtonManager.cpp>
-#include <MementaryPushButtonManager.h>
-#include <OnOffRelayManager.cpp>
-#include <OnOffRelayManager.h>
-#include <PubSub.h>
-#include <PulseRelayManager.cpp>
-#include <PulseRelayManager.h>
-#include <PushButtonManager.cpp>
-#include <PushButtonManager.h>
-#include <RelayManager.cpp>
-#include <RelayManager.h>
-#include <Singleton.h>
-#include <TogglePushButtonManager.cpp>
-#include <TogglePushButtonManager.h>
-#include <Util.cpp>
-#include <Util.h>
-#include <WebServer.cpp>
-#include <WebServer.h>
-#include <WiFiManager.cpp>
-#include <WiFiManager.h>
+#include "LedLightWebController.ino"
 #endif
