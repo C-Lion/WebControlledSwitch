@@ -15,10 +15,13 @@ static const char *turnOnMenuEntry = "Turn On";
 static const char *turnOffMenuEntry = "Turn Off";
 static const char *pulseMenuEntry = "Activate";
 
-//uncomment this line to change the behavior of the controller to act as a switch (pulse) instead of an On/Off button
+const int defaultButtonLongTimePeriod = 5000; //5 seconds -> reset
+const int defaultButtonVeryLongTimePeriod = 20000; //20 seconds -> factory reset
+
+//uncomment this line to change the default behavior of the controller to act as a switch (pulse) instead of an On/Off button
 //for example, in case you need to control a garage gate that use the same signal 
 //(activate to open the door and activate again to close it)
-//#define PULSE_COMMAND
+#define PULSE_COMMAND
 
 
 //https://azure.microsoft.com/en-us/services/iot-hub/

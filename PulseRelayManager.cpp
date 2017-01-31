@@ -18,6 +18,8 @@ void PulseRelayManager::Set(int value)
 
 void PulseRelayManager::OnCommand(const std::string& commandName, int commandId)
 {
+	Serial.print("Pulse relay manager received command:");
+	Serial.print(commandName.c_str());
 	if (commandName == "Activate")
 		Set(HIGH);
 }

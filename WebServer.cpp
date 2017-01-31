@@ -2,7 +2,8 @@
 #include "Util.h"
 using namespace std;
 
-WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::function<bool()> relayStateUpdater) :
+WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater) :
+	_deviceSettings(move(deviceSettings)),
 	_server(port), 
 	_authorizedUrl(string("/") + appKey),
 	_relayStateUpdater(relayStateUpdater)
@@ -85,24 +86,25 @@ void WebServer::HandleSetup()
 
 void WebServer::HandleSetAccessPoint()
 {
-	auto accessPoint = _server.arg("ap");
-	auto password = _server.arg("password");
-	_accessPointCredentioalUpdater(accessPoint.c_str(), password.c_str());
-	String html =
-		R"(<p><center><h3>Access point credentials:</h3></center></p>)";
+	_deviceSettings->ssidName = _server.arg("ap").c_str();
+	_deviceSettings->accessPointPassword = _server.arg("password").c_str();
+	string html =
+		R"(<p><center><h3>The device will reboot and try to connect to:</h3></center></p>)";
 		html += R"(<p>Access Point Name:)";
-		html += accessPoint;
-		html += R"(<br/>(Access Point Password:)";
-		html += password;
-		html += "</p>";
+		html += _deviceSettings->ssidName;
+		html += "</p><br/>";
+		html += "If after the reboot the two Leds are blinking or the green led is not turned on, do a factory reset by pressing the button for more than ";
+		html += String(_deviceSettings->veryLongButtonPeriod / 1000).c_str();
+		html += " seconds. The two leds should blinks very fast.";
 
 		SendBackHtml(html.c_str());
+		_configurationUpdater(*_deviceSettings.get());
 		Util::software_Reboot();
 }
 
 void WebServer::HandleResetAccessPoint()
 {
-	_accessPointCredentioalUpdater(string(), string());
+	_deviceSettings->isFactoryReset = true;
 	String html =
 		R"(<p><h3>Access point credentials has been reset.</h3></p><br/><p>Reset device to activate access point mode.</p><br/>)";
 		html += R"(<p>Set new access point SSID information by surfing to )";
@@ -110,7 +112,7 @@ void WebServer::HandleResetAccessPoint()
 		html += "</p>";
 
 	SendBackHtml(html.c_str());
-	Util::software_Reboot();
+	_configurationUpdater(*_deviceSettings.get()); //this will reset the device
 }
 void WebServer::HandleCommand(WebCommandPtr_t webCommand)
 {
@@ -132,9 +134,9 @@ void WebServer::Loop()
 	_server.handleClient();
 }
 
-void WebServer::SetUpdateAccessPointCredentials(std::function<void(const std::string&, const std::string&)> accessPointCredentioalUpdater)
+void WebServer::SetUpdateConfiguration(std::function<void(const DeviceSettings&)> configurationUpdater)
 {
-	_accessPointCredentioalUpdater = accessPointCredentioalUpdater;
+	_configurationUpdater = configurationUpdater;
 }
 
 void WebServer::UpdateStatus(ConnectionStatus status)

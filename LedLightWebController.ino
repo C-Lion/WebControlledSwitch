@@ -1,5 +1,5 @@
 #include <EEPROM.h>
-#include "PasswordManager.h"
+#include "ConfigurationManager.h"
 #include "ArduinoLoopManager.h"
 #include "PubSub.h"
 #include "AzureIoTHubHttpClient.h"
@@ -37,7 +37,7 @@ WiFiManagerPtr_t wifiManager;
 RelayManagerPtr_t relayManager;
 PushButtonManagerPtr_t pushButtonManager;
 ArduinoLoopManager_t loopManager;
-PasswordManager_t passwordManger;
+ConfigurationManager_t configurationManger;
 
 template<typename T>
 void SubscribeRemoteCommands(std::shared_ptr<T> server)
@@ -46,19 +46,15 @@ void SubscribeRemoteCommands(std::shared_ptr<T> server)
 	server->Register([](const string &commandName, int id) {relayManager->OnCommand(commandName, id); });
 }
 
-#ifdef USEAZUREIOTHUB
+
 AzureIoTHubManagerPtr_t azureIoTHubManager;
 
 void SetupAzureIoTHubManager()
 {
 	azureIoTHubManager = AzureIoTHubManager::Create(wifiManager, logger, azureIoTHubDeviceConnectionString);
 	SubscribeRemoteCommands(azureIoTHubManager);
-#ifdef PULSE_COMMAND
-
-#endif
-
 }
-#else
+
 class WebCommand : public IWebCommand, public enable_shared_from_this<WebCommand>
 {
 private:
@@ -108,24 +104,58 @@ public:
 int WebCommand::s_id = 0;
 WebServerPtr_t webServer;
 
+
 void SetupWebServer()
 {
-	webServer = WebServer::Create(wifiManager, 80, appKey, []() { return relayManager->State(); });
-	webServer->SetWebSiteHeader(string(webSiteHeader));
-	webServer->SetUpdateAccessPointCredentials([](const string &ssid, const string &password)
-	{
-		passwordManger->WriteWiFiCredentials(ssid, password);
-	});
-	SubscribeRemoteCommands(webServer);
+	bool isFactoryReset;
+	std::string ssidName;
+	std::string accessPointPassword;
+	bool shouldUseAzureIoT;
+	std::string azureIoTHubConnectionString;
+	std::string AzureioTDeviceId;
+	unsigned int longButtonPeriod;
+	unsigned int veryLongButtonPeriod;
 
-#ifdef PULSE_COMMAND
+	auto deviceSettings = unique_ptr<DeviceSettings>(new DeviceSettings());
+	deviceSettings->isFactoryReset = false;
+	deviceSettings->ssidName = configurationManger->GetSSID();
+	deviceSettings->accessPointPassword = configurationManger->GetAccessPointPassword();
+	deviceSettings->shouldUseAzureIoT = configurationManger->ShouldUseAzureIoTHub();
+	deviceSettings->azureIoTHubConnectionString = configurationManger->GetAzureIoTConnectionString();
+	deviceSettings->AzureioTDeviceId = configurationManger->GetIoTHubDeviceId();
+	deviceSettings->longButtonPeriod = configurationManger->GetLongPeriodButonPressTimesMilliSeconds();
+	deviceSettings->veryLongButtonPeriod = configurationManger->GetVeryLongPeriodButonPressTimesMilliSeconds();
+
+	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return relayManager->State(); });
+	webServer->SetWebSiteHeader(string(webSiteHeader));
+	webServer->SetUpdateConfiguration([](const DeviceSettings& deviceSettings)
+	{
+		if (deviceSettings.isFactoryReset)
+		{
+			configurationManger->FacrotyReset();
+			return; //never reach this line, the device should reset itself
+		}
+
+		configurationManger->SetWiFiCredentials(deviceSettings.ssidName, deviceSettings.accessPointPassword);
+		if (deviceSettings.shouldUseAzureIoT)
+		{
+			configurationManger->SetAzureIoTHubInformation(deviceSettings.azureIoTHubConnectionString, deviceSettings.AzureioTDeviceId);
+		}
+		else
+		{
+			configurationManger->SetWebServerMode();
+		}
+		configurationManger->SetButonPressTimesMilliSeconds(deviceSettings.longButtonPeriod, deviceSettings.veryLongButtonPeriod);
+		configurationManger->FlashEEProm();
+		
+	});
+
+	SubscribeRemoteCommands(webServer);
 	make_shared<WebCommand>(pulseMenuEntry, "Activate", webServer)->Register();
-#else
 	make_shared<WebCommand>(turnOnMenuEntry, "On", webServer)->Register();
 	make_shared<WebCommand>(turnOffMenuEntry, "Off", webServer)->Register();
-#endif
 }
-#endif
+
 
 
 class PushButtonActions final : public IPushButtonActions
@@ -142,14 +172,14 @@ private:
 
 void setup()
 {
-	passwordManger = PasswordManager::Create();
+	configurationManger = ConfigurationManager::Create();
 
-	auto storedSSID = passwordManger->GetSSID();
-	auto storedPassword = passwordManger->GetWiFiPassword();
+	auto storedSSID = configurationManger->GetSSID();
+	auto storedPassword = configurationManger->GetAccessPointPassword();
 
 	logger = Logger::Create(redLed, greenLed, 115200);
 
-	if (storedSSID != string())
+	if (!configurationManger->IsAccessPointMode())
 	{
 		Serial.println("Try to connect to WiFi Access Point");
 		Serial.print("Stored SSID is:");
@@ -172,29 +202,36 @@ void setup()
 
 	wifiManager->RegisterClient([](const ConnectionStatus &status) { logger->OnWiFiStatusChanged(status); });
 
-#ifdef USEAZUREIOTHUB
-	SetupAzureIoTHubManager();
-#else
-	SetupWebServer();
-#endif	
+	if (configurationManger->ShouldUseAzureIoTHub())
+	{
+		SetupAzureIoTHubManager();
+	}
+	else
+	{
+		SetupWebServer();
+	}
 
+	if (configurationManger->GetRelayMode() == RelayMode::Pulse)
+	{
+		pushButtonManager = MementaryPushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
+		relayManager = PulseRelayManager::Create(relay, 1000, [=](const string &message) { logger->WriteMessage(message); });
+	}
+	else
+	{
+		pushButtonManager = TogglePushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
+		relayManager = OnOffRelayManager::Create(relay, [=](const string &message) { logger->WriteMessage(message); });
+	}
 
-#ifdef PULSE_COMMAND
-	pushButtonManager = MementaryPushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
-	relayManager = PulseRelayManager::Create(relay, 1000, [=](const string &message) { logger->WriteMessage(message); });
-#else
-	pushButtonManager =TogglePushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
-	relayManager = OnOffRelayManager::Create(relay, [=](const string &message) { logger->WriteMessage(message); });
-#endif
-
-#ifdef USEAZUREIOTHUB
-	loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{ logger, wifiManager, pushButtonManager, relayManager, azureIoTHubManager });
-#else
-	loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{logger, wifiManager, pushButtonManager, relayManager, webServer });
-#endif
-
+	if (configurationManger->ShouldUseAzureIoTHub())
+	{
+		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{ logger, wifiManager, pushButtonManager, relayManager, azureIoTHubManager });
+	}
+	else
+	{
+		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{logger, wifiManager, pushButtonManager, relayManager, webServer });
+	}
 	logger->TestLeds();
-}
+	}
 
 
 
@@ -206,15 +243,15 @@ void loop()
 void SwitchRelayState(int state)
 {
 	relayManager->Set(state);
-#ifdef USEAZUREIOTHUB
-	azureIoTHubManager->UpdateRelayState(deviceId, state);
-#endif
+	if (configurationManger->ShouldUseAzureIoTHub())
+	{
+		azureIoTHubManager->UpdateRelayState(deviceId, state);
+	}
 }
 
 void ResetToAccessPointMode()
 {
-	passwordManger->WriteWiFiCredentials(string(), string()); //switch to access point mode
-	Util::software_Reboot();
+	configurationManger->FacrotyReset(); //switch to access point mode and reset the device
 }
 
 void Reset()

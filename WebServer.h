@@ -26,12 +26,26 @@ public:
 
 	virtual ~IWebCommand() {}
 };
+
+struct DeviceSettings
+{
+	bool isFactoryReset;
+	std::string ssidName;
+	std::string accessPointPassword;
+	bool shouldUseAzureIoT;
+	std::string azureIoTHubConnectionString;
+	std::string AzureioTDeviceId;
+	unsigned int longButtonPeriod;
+	unsigned int veryLongButtonPeriod;
+};
+
 typedef std::shared_ptr<IWebCommand> WebCommandPtr_t;
 typedef std::function<void(const std::string&, int)> WebNotificationPtr_t;
 class WebServer : public Singleton<WebServer>, public IProcessor
 {
 	friend class Singleton<WebServer>;
 private:
+	std::unique_ptr<DeviceSettings> _deviceSettings;
 	ESP8266WebServer _server;
 	PubSub<WebServer, const std::string&, int> _pubsub;
 	bool _relayState = false;
@@ -40,11 +54,11 @@ private:
 	std::vector<WebCommandPtr_t> _webCommands;
 	bool _isInit = false;
 	std::function<bool()> _relayStateUpdater;
-	std::function<void(const std::string&, const std::string&)> _accessPointCredentioalUpdater;
+	std::function<void(const DeviceSettings&)> _configurationUpdater;
 	void SendBackHtml(const std::string &message);
 	void UpdateStatus(ConnectionStatus status);
 	std::string CreateUrl(const std::string &s) const;
-	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::function<bool()> relayStateUpdater);
+	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater);
 
  public:
 	
@@ -61,7 +75,7 @@ private:
 	void Register(WebNotificationPtr_t subscriber) { _pubsub.Register(subscriber); }
 	bool IsConnected() const;
 	void Loop();
-	void SetUpdateAccessPointCredentials(std::function<void (const std::string&, const std::string&)> accessPointCredentioalUpdater);
+	void SetUpdateConfiguration(std::function<void(const DeviceSettings&)> configurationUpdater);
 };
 
 typedef std::shared_ptr<WebServer> WebServerPtr_t;
