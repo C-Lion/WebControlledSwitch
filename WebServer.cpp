@@ -1,5 +1,10 @@
 #include "WebServer.h"
 #include "Util.h"
+#include "WebSettings.h"
+#include <map>
+#include <algorithm>
+
+
 using namespace std;
 
 WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater) :
@@ -53,35 +58,58 @@ void WebServer::HandleMain()
 	SendBackHtml(html);
 }
 
+
 void WebServer::HandleSetup()
 {
-	String html =
-		R"(<p><center><h3>Set access point credentials:</h3></center><p>)
-		<p><h4>Access Points in range:</h4>
-		<form id="set-access-point" action="setaccesspoint" method="post">
-			<ul>)";
+	string html;
 	auto accessPointList = ConnectionStatus::GetAccessPoints();
 	for (auto &&ap : accessPointList)
 	{
-		html += R"(<li><label for = ")";
+		html += R"(<li><label>)";
 		html += ap.SSID.c_str();
-		html += R"(">)";
-		html += ap.SSID.c_str();
-		html += "   Signal:";
-		html += String(ap.RSSI);
+		html += "  Signal:";
+		html += String(ap.RSSI).c_str();
 		if (ap.isEncripted)
 			html += " *";
-		html += R"("</label> <input type = "radio" name = "ap" id = ")";
+		html += R"("</label> <input type = "radio" name = "ap" value = ")";
 		html += ap.SSID.c_str();
-		html += R"(" value = ")";
-		html += ap.SSID.c_str();
+		html += R"(" )";
+		if (ap.SSID == _deviceSettings->ssidName)
+			html += R"( checked="checked" )";
 		html += R"("></li>)";
 	}
-	html += R"(</ul>)";
-	html += R"(<fieldset>AccessPoint Password:<br/>)";
-	html += R"(<input type="password" name="password"><br/>)";
-	html += R"(<input type="submit" value="Set Password"></fieldset></form></p>)";
-	SendBackHtml(html.c_str());
+	
+	std::map<string, string> templateValuesMap =
+	{
+		{"AccessPointList" , html},
+		{"WiFiPassword", _deviceSettings->accessPointPassword},
+		{"DeviceId", _deviceSettings->AzureIoTDeviceId},
+		{"PBLongPress", String(_deviceSettings->longButtonPeriod).c_str()},
+		{"PBVeryLongPress", String(_deviceSettings->veryLongButtonPeriod).c_str()},
+		{"PBPulseActivationPeriod", String(_deviceSettings->PulseActivationPeriod).c_str()}
+	};
+
+	const string checked = R"(checked="checked")";
+	if (_deviceSettings->shouldUseAzureIoT)
+	{
+		templateValuesMap.insert(pair<string, string>{ "AzureIoTHub", checked});
+	}
+	else
+	{
+		templateValuesMap.insert(pair<string, string>{ "WebServer", checked});
+	}
+
+	if (_deviceSettings->PBBehavior == PushButtonBehaviour::Toggle)
+	{
+		templateValuesMap.insert(pair<string, string>{ "PBBehaviourToggle", checked});
+	}
+	else
+	{
+		templateValuesMap.insert(pair<string, string>{ "PBBehaviourPulse", checked});
+	}
+
+	html = Util::CreateHTMLFromTemplate(WebSettingHtmlTemplate, templateValuesMap);
+	SendBackHtml(html);
 }
 
 void WebServer::HandleSetAccessPoint()
@@ -89,8 +117,7 @@ void WebServer::HandleSetAccessPoint()
 	_deviceSettings->ssidName = _server.arg("ap").c_str();
 	_deviceSettings->accessPointPassword = _server.arg("password").c_str();
 	string html =
-		R"(<p><center><h3>The device will reboot and try to connect to:</h3></center></p>)";
-		html += R"(<p>Access Point Name:)";
+		R"(<p><center><h3>The device will reboot and try to connect to:</h3></center></p><p>)";
 		html += _deviceSettings->ssidName;
 		html += "</p><br/>";
 		html += "If after the reboot the two Leds are blinking or the green led is not turned on, do a factory reset by pressing the button for more than ";

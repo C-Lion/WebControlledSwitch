@@ -8,15 +8,17 @@ static const char *SSID = "AlonIoT"; //The default configuration access point ss
 static const char *password = "12345678"; //The default configuration access point password - at least 8 chars
 static const char *webSiteHeader = "Welcome to the web light switch server";
 static const char *appKey = "appkey"; //your secret app key - should be long enough
-static const char* azureIoTHubDeviceConnectionString = "HostName=[IoTHub].azure-devices.net;DeviceId=[MyLightSwitch];SharedAccessKey=k6UElnivbQgrFGD86LSTPNRmV36cpKMe1OOH5LMc/42k=";
+//static const char* azureIoTHubDeviceConnectionString = "HostName=[IoTHub].azure-devices.net;DeviceId=[MyLightSwitch];SharedAccessKey=k6UElnivbQgrFGD86LSTPNRmV36cpKMe1OOH5LMc/42k=";
 static char* deviceId = "MyLightSwitch";
 
+static const char* azureIoTHubDeviceConnectionString = "HostName=BlinkyHub.azure-devices.net;DeviceId=MyLightSwitch;SharedAccessKey=B333wsfq0fh3/w2gA98LPMTLPvVxwmyikM3/1ah1JTo=";
 static const char *turnOnMenuEntry = "Turn On";
 static const char *turnOffMenuEntry = "Turn Off";
 static const char *pulseMenuEntry = "Activate";
 
-const int defaultButtonLongTimePeriod = 5000; //5 seconds -> reset
-const int defaultButtonVeryLongTimePeriod = 20000; //20 seconds -> factory reset
+const unsigned int defaultButtonLongTimePeriod = 5000; //5 seconds -> reset
+const unsigned int defaultButtonVeryLongTimePeriod = 20000; //20 seconds -> factory reset
+const unsigned int defaultPulseActivationTimePeriod = 2000; 
 
 //uncomment this line to change the default behavior of the controller to act as a switch (pulse) instead of an On/Off button
 //for example, in case you need to control a garage gate that use the same signal 

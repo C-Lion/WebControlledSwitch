@@ -4,7 +4,6 @@
 #include "PubSub.h"
 #include "AzureIoTHubHttpClient.h"
 #include "Singleton.h"
-#include <iot_logging.h>
 #include <AzureIoTHubClient.h>
 #include <AzureIoTHub.h>
 #include <Arduino.h>
@@ -107,24 +106,17 @@ WebServerPtr_t webServer;
 
 void SetupWebServer()
 {
-	bool isFactoryReset;
-	std::string ssidName;
-	std::string accessPointPassword;
-	bool shouldUseAzureIoT;
-	std::string azureIoTHubConnectionString;
-	std::string AzureioTDeviceId;
-	unsigned int longButtonPeriod;
-	unsigned int veryLongButtonPeriod;
-
 	auto deviceSettings = unique_ptr<DeviceSettings>(new DeviceSettings());
 	deviceSettings->isFactoryReset = false;
 	deviceSettings->ssidName = configurationManger->GetSSID();
 	deviceSettings->accessPointPassword = configurationManger->GetAccessPointPassword();
 	deviceSettings->shouldUseAzureIoT = configurationManger->ShouldUseAzureIoTHub();
 	deviceSettings->azureIoTHubConnectionString = configurationManger->GetAzureIoTConnectionString();
-	deviceSettings->AzureioTDeviceId = configurationManger->GetIoTHubDeviceId();
+	deviceSettings->AzureIoTDeviceId = configurationManger->GetIoTHubDeviceId();
 	deviceSettings->longButtonPeriod = configurationManger->GetLongPeriodButonPressTimesMilliSeconds();
 	deviceSettings->veryLongButtonPeriod = configurationManger->GetVeryLongPeriodButonPressTimesMilliSeconds();
+	deviceSettings->PulseActivationPeriod = configurationManger->GetPulseActivationPeriodTimesMilliSeconds();
+	deviceSettings->PBBehavior = configurationManger->GetRelayMode() == RelayMode::Pulse ? PushButtonBehaviour::Pulse : PushButtonBehaviour::Toggle;
 
 	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return relayManager->State(); });
 	webServer->SetWebSiteHeader(string(webSiteHeader));
@@ -139,13 +131,13 @@ void SetupWebServer()
 		configurationManger->SetWiFiCredentials(deviceSettings.ssidName, deviceSettings.accessPointPassword);
 		if (deviceSettings.shouldUseAzureIoT)
 		{
-			configurationManger->SetAzureIoTHubInformation(deviceSettings.azureIoTHubConnectionString, deviceSettings.AzureioTDeviceId);
+			configurationManger->SetAzureIoTHubInformation(deviceSettings.azureIoTHubConnectionString, deviceSettings.AzureIoTDeviceId);
 		}
 		else
 		{
 			configurationManger->SetWebServerMode();
 		}
-		configurationManger->SetButonPressTimesMilliSeconds(deviceSettings.longButtonPeriod, deviceSettings.veryLongButtonPeriod);
+		configurationManger->SetButonPressTimesMilliSeconds(deviceSettings.longButtonPeriod, deviceSettings.veryLongButtonPeriod, deviceSettings.PulseActivationPeriod);
 		configurationManger->FlashEEProm();
 		
 	});
@@ -184,9 +176,7 @@ void setup()
 		Serial.println("Try to connect to WiFi Access Point");
 		Serial.print("Stored SSID is:");
 		Serial.println(storedSSID.c_str());
-		Serial.print("Stored Password is:");
-		Serial.println(storedPassword.c_str());
-
+		
 		wifiManager = WiFiManager::Create(storedSSID, storedPassword, false);
 	}
 	else //Set access point mode
@@ -195,8 +185,6 @@ void setup()
 		Serial.print("Stored SSID is:");
 		Serial.println(storedSSID.c_str());
 
-		Serial.print("Stored Password is:");
-		Serial.println(storedPassword.c_str());
 		wifiManager = WiFiManager::Create(SSID, password, true);
 	}
 

@@ -82,21 +82,6 @@ void AzureIoTHubManager::UpdateRelayState( char *deviceId, int state) const
 		AzureIoTHubSendMessage(deviceId, state, 1);
 }
 
-void AzureIoTHubManager::OnActivate(const char* logInfo) const
-{
-	HandleCommand("Activate", 1, logInfo);
-}
-
-void AzureIoTHubManager::OnTurnOn(const char* logInfo) const
-{
-	HandleCommand("TurnOn", 2, logInfo);
-}
-
-void AzureIoTHubManager::OnTurnOff(const char* logInfo) const
-{
-	HandleCommand("TurnOff", 3, logInfo);
-}
-
 void AzureIoTHubManager::UpdateStatus(ConnectionStatus status)
 {
 	if (status.IsJustConnected() && !_IsInitTime) //new connection, only once
@@ -105,5 +90,4 @@ void AzureIoTHubManager::UpdateStatus(ConnectionStatus status)
 		_IsInitTime = true;
 	}
 }
-
 

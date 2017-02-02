@@ -4,12 +4,14 @@
 #include <memory>
 #include "Singleton.h"
 #include "ArduinoLoopManager.h"
+#include <IPAddress.h>
+#include <queue>
+
 
 class LedsLogger : public Singleton<LedsLogger>, public IProcessor
 {
  private:
 	 friend class Singleton<LedsLogger>;
-
 	 class Led
 	 {
 	 private:
@@ -18,10 +20,19 @@ class LedsLogger : public Singleton<LedsLogger>, public IProcessor
 		 int _times = 0;
 		 int _blinkDelay = 0;
 		 unsigned long _startTime = 0;
+		 int _delayBeforeStart;
+		 int _currentBlinkingIpDigit;
+		 IPAddress _ipAddress;
+		 bool _bBlinkingIpAddress;
+		 int _currentBlinkingIpOctec;
+		 static int GetDigit(int from, int index);
+		 void DoBlink(int times, int delay, int delayBeforeStart = 0);
+		 void BlinkNextIpDigit();
 	 public:
 		 Led(int ledPin);
 		 void Update();
-		 void Blink(int times, int delay);
+		 void BlinkIpAddress(const IPAddress& ipAddress);
+		 void Blink(int times, int delay, int delayBeforeStart = 0);
 		 void Set(int value);
 	 };
 
@@ -31,16 +42,18 @@ class LedsLogger : public Singleton<LedsLogger>, public IProcessor
 	 LedsLogger(int redLedPin, int greenLedPin) : _red(redLedPin), _green(greenLedPin) {}
 
  public:
-	
-	 void BlinkRed(int times, int delay) { _red.Blink(times, delay); }
-	 void BlinkGreen(int times, int delay) { _green.Blink(times, delay); }
+	 void BlinkRed(int times, int delay, int delayBeforeStart = 0) { _red.Blink(times, delay, delayBeforeStart); }
+	 void BlinkGreen(int times, int delay, int delayBeforeStart = 0) { _green.Blink(times, delay, delayBeforeStart); }
 	 void SetRed(int value) { _red.Set(value); }
 	 void SetGreen(int value) { _green.Set(value); }
+	 
 	 void Loop() override
 	 { //call this function in a tight interval
 		 _red.Update();
 		 _green.Update();
 	 }
+
+	 void BlinkIpAddress(const IPAddress& ipAddress) { _green.BlinkIpAddress(ipAddress); }
 };
 
 typedef std::shared_ptr<LedsLogger> LedsLoggerPtr_t;

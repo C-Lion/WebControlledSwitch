@@ -3,7 +3,7 @@
 
 using namespace std;
 
-std::map<int, WiFiStatus> ConnectionStatus::_statusMap =
+std::map<int, WiFiStatus>  ConnectionStatus::_statusMap =
 {
 	{ WL_CONNECTED, WiFiStatus::connected },
 	{ WL_NO_SHIELD, WiFiStatus::noShield },
@@ -15,7 +15,7 @@ std::map<int, WiFiStatus> ConnectionStatus::_statusMap =
 	{ WL_DISCONNECTED, WiFiStatus::dissconnected }
 };
 
-std::array<string, 8> ConnectionStatus::_messageMap =
+std::array<string, 8>  ConnectionStatus::_messageMap =
 {
 	"Connected to a WiFi network",
 	"No WiFi shield is present",
@@ -26,7 +26,7 @@ std::array<string, 8> ConnectionStatus::_messageMap =
 	"The connection is lost",
 	"Disconnected from a network"
 };
-std::list<AccessPointInfo> ConnectionStatus::_accessPointList;
+std::list<AccessPointInfo>  ConnectionStatus::_accessPointList;
 
 WiFiManager::WiFiManager(const std::string &ssid, const std::string &password, bool isAccessPointMode)
 {
@@ -70,12 +70,12 @@ WiFiManager::WiFiManager(const std::string &ssid, const std::string &password, b
 	}
 }
 
-void WiFiManager::RegisterClient(wifiNotificarionFunc_t notification)
+void  WiFiManager::RegisterClient(wifiNotificarionFunc_t notification)
 {
 	_subscribers.push_back(notification);
 }
 
-void WiFiManager::NotifyAll(ConnectionStatus status) const
+void  WiFiManager::NotifyAll(ConnectionStatus status) const
 {
 	for (auto subscriber : _subscribers)
 	{
@@ -103,9 +103,9 @@ void WiFiManager::UpdateStatus()
 	}
 
 	auto currentStatus = WiFi.status();
-	if (_lastConnectionStatus == currentStatus) //no change
+	if (_lastConnectionStatus == currentStatus) //no change, update every 20 seconds
 		return;
-	
+
 	bool justConnected = _lastConnectionStatus != WL_CONNECTED &&  currentStatus == WL_CONNECTED;
 	bool justDissconnected = _lastConnectionStatus == WL_CONNECTED && currentStatus != WL_CONNECTED;
 	
@@ -113,7 +113,7 @@ void WiFiManager::UpdateStatus()
 	NotifyAll(ConnectionStatus(WiFi.status(), WiFi.localIP(), justConnected, justDissconnected));
 }
 
-ConnectionStatus WiFiManager::GetStatus() const
+ConnectionStatus  ICACHE_FLASH_ATTR WiFiManager::GetStatus() const
 {
 	return ConnectionStatus(WiFi.status(), WiFi.localIP());
 }

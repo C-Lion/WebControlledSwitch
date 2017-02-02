@@ -36,7 +36,7 @@ struct AccessPointInfo
 	bool isEncripted;
 };
 
-class ConnectionStatus
+class  ICACHE_FLASH_ATTR ConnectionStatus
 {
 	friend class WiFiManager;
 private:
@@ -48,7 +48,7 @@ private:
 
 	static std::map<int, WiFiStatus> _statusMap;
 	static std::array<std::string, 8> _messageMap;
-	static std::list<AccessPointInfo> _accessPointList;
+	static std::list<AccessPointInfo>   _accessPointList;
 
 	static void ClearAccessPointList() { _accessPointList.clear(); }
 	template<typename T>
@@ -71,7 +71,7 @@ public:
 
 typedef std::function<void (ConnectionStatus)> wifiNotificarionFunc_t;
 
-class WiFiManager : public Singleton<WiFiManager>, public IProcessor
+class  ICACHE_FLASH_ATTR WiFiManager : public Singleton<WiFiManager>, public IProcessor
 {
 	friend class Singleton<WiFiManager>;
 private:
@@ -83,7 +83,7 @@ private:
 
 	void UpdateStatus();
 	void NotifyAll(ConnectionStatus status) const;
-	WiFiManager(const std::string &ssid, const std::string &password, bool isAccesspointMode);
+	ICACHE_FLASH_ATTR WiFiManager(const std::string &ssid, const std::string &password, bool isAccesspointMode);
 
  public:
 	void RegisterClient(wifiNotificarionFunc_t notification);

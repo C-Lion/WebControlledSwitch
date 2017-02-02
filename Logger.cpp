@@ -38,20 +38,28 @@ void Logger::OnWiFiStatusChanged(const ConnectionStatus& status) const
 	_ledsLogger->SetGreen(status.IsConnected() ? HIGH : LOW);
 	_ledsLogger->SetRed(status.IsConnected() ? LOW : HIGH);
 
-	if (!status.IsConnected())
+	if (status.IsConnected())
+	{
+		_ledsLogger->BlinkIpAddress(status.LocalIP());
+	}
+	else
+	{
 		_ledsLogger->BlinkRed(3 + status.WifiCode(), 250);
+	}
+	
+
 }
 
 void Logger::OnLongButtonPressDetection() const
 {
-	_ledsLogger->BlinkGreen(100, 30);
-	_ledsLogger->BlinkRed(100, 30);
+	_ledsLogger->BlinkGreen(1000, 40);
+	_ledsLogger->BlinkRed(1000, 40);
 }
 
 void Logger::OnVeryLongButtonPressDetection() const
 {
-	_ledsLogger->BlinkGreen(100, 15);
-	_ledsLogger->BlinkRed(100, 15);
+	_ledsLogger->BlinkGreen(10000, 20);
+	_ledsLogger->BlinkRed(10000, 20);
 }
 
 void Logger::WriteMessage(const std::string& message)

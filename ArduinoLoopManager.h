@@ -11,7 +11,7 @@
 class IProcessor
 {
 public:
-	virtual void Loop() = 0;
+	virtual  void Loop() = 0;
 	virtual ~IProcessor() {}
 };
 

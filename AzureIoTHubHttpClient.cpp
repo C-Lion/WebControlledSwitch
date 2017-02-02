@@ -2,64 +2,37 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include "AzureIoTHub.h"
-#include "iot_logging.h"
 #include "AzureIoTHubManager.h"
 
 // Define the Model
-BEGIN_NAMESPACE(ShoogonIoTSystems);
+BEGIN_NAMESPACE(IoT);
 
 DECLARE_MODEL(SwitchController,
 WITH_DATA(ascii_char_ptr, DeviceId),
 WITH_DATA(int, Status),
-WITH_ACTION(Activate, ascii_char_ptr, logInfo),
-WITH_ACTION(TurnOn, ascii_char_ptr, logInfo),
-WITH_ACTION(TurnOff, ascii_char_ptr, logInfo)
+WITH_ACTION(Command, int, commandid, ascii_char_ptr, commandName, ascii_char_ptr, logInfo)
 );
 
-END_NAMESPACE(ShoogonIoTSystems);
+END_NAMESPACE(IoT);
 
 DEFINE_ENUM_STRINGS(IOTHUB_CLIENT_CONFIRMATION_RESULT, IOTHUB_CLIENT_CONFIRMATION_RESULT_VALUES)
 
-EXECUTE_COMMAND_RESULT Activate(SwitchController* device, char *logInfo)
+EXECUTE_COMMAND_RESULT Command(SwitchController* device, int commandId, char *commandName, char *logInfo)
 {
 	(void)device;
-	LogInfo("Activate.\r\n");
+	Serial.write("Activate.\n");
 	if (logInfo != nullptr)
-		LogInfo("%s", logInfo);
+		Serial.write(logInfo);
 
-	AzureIoTHubManager::Instance()->OnActivate(logInfo);
+	AzureIoTHubManager::Instance()->HandleCommand(commandName, commandId, logInfo);
 
-	return EXECUTE_COMMAND_SUCCESS;
-}
-
-
-EXECUTE_COMMAND_RESULT TurnOn(SwitchController* device, char *logInfo)
-{
-	(void)device;
-	LogInfo("TurnOn.\r\n");
-	if (logInfo != nullptr)
-		LogInfo("%s", logInfo);
-	AzureIoTHubManager::Instance()->OnTurnOn(logInfo);
-	return EXECUTE_COMMAND_SUCCESS;
-}
-
-EXECUTE_COMMAND_RESULT TurnOff(SwitchController* device, char *logInfo)
-{
-	(void)device;
-	LogInfo("TurnOff.\r\n");
-	if (logInfo != nullptr)
-		LogInfo("%s", logInfo);
-	AzureIoTHubManager::Instance()->OnTurnOff(logInfo);
 	return EXECUTE_COMMAND_SUCCESS;
 }
 
 void sendCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* userContextCallback)
 {
 	int messageTrackingId = reinterpret_cast<intptr_t>(userContextCallback);
-
-	LogInfo("Message Id: %d Received.\r\n", messageTrackingId);
-
-	LogInfo("Result Call Back Called! Result is: %s \r\n", ENUM_TO_STRING(IOTHUB_CLIENT_CONFIRMATION_RESULT, result));
+	Serial.printf("Message Id: %d Received.\n", messageTrackingId);
 }
 
 static void sendMessage(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsigned char* buffer, size_t size)
@@ -68,18 +41,18 @@ static void sendMessage(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsign
 	IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromByteArray(buffer, size);
 	if (messageHandle == nullptr)
 	{
-		LogInfo("unable to create a new IoTHubMessage\r\n");
+		Serial.write("unable to create a new IoTHubMessage\n");
 	}
 	else
 	{
 		if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback,
 			reinterpret_cast<void*>(static_cast<uintptr_t>(messageTrackingId))) != IOTHUB_CLIENT_OK)
 		{
-			LogInfo("failed to hand over the message to IoTHubClient");
+			Serial.write("failed to hand over the message to IoTHubClient");
 		}
 		else
 		{
-			LogInfo("IoTHubClient accepted the message for delivery\r\n");
+			Serial.write("IoTHubClient accepted the message for delivery\n");
 		}
 		IoTHubMessage_Destroy(messageHandle);
 	}
@@ -95,7 +68,7 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT IoTHubMessage(IOTHUB_MESSAGE_HANDLE mess
 	size_t size;
 	if (IoTHubMessage_GetByteArray(message, &buffer, &size) != IOTHUB_MESSAGE_OK)
 	{
-		LogInfo("unable to IoTHubMessage_GetByteArray\r\n");
+		Serial.write("unable to IoTHubMessage_GetByteArray");
 		result = IOTHUBMESSAGE_REJECTED;
 	}
 	else
@@ -104,7 +77,7 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT IoTHubMessage(IOTHUB_MESSAGE_HANDLE mess
 		char* temp = static_cast<char *>(malloc(size + 1));
 		if (temp == nullptr)
 		{
-			LogInfo("failed to malloc\r\n");
+			Serial.write("failed to malloc\r\n");
 			result = IOTHUBMESSAGE_REJECTED;
 		}
 		else
@@ -129,7 +102,7 @@ extern "C" bool AzureIoTHubInit(const char *connectionString)
 {
 	if (serializer_init(nullptr) != SERIALIZER_OK)
 	{
-		LogInfo("Failed on serializer_init\r\n");
+		Serial.write("Failed on serializer_init\n");
 		return false;
 	}
 
@@ -138,26 +111,26 @@ extern "C" bool AzureIoTHubInit(const char *connectionString)
 
 	if (iotHubClientHandle == nullptr)
 	{
-		LogInfo("Failed on IoTHubClient_LL_Create\r\n");
+		Serial.write("Failed on IoTHubClient_LL_Create\n");
 		return false;
 	}
 	unsigned int minimumPollingTime = 3; /*because it can poll "after 9 seconds" polls will happen effectively at 4 seconds*/
 	if (IoTHubClient_LL_SetOption(iotHubClientHandle, "MinimumPollingTime", &minimumPollingTime) != IOTHUB_CLIENT_OK)
 	{
-		LogInfo("failure to set option \"MinimumPollingTime\"\r\n");
+		Serial.write("failure to set option \"MinimumPollingTime\"\n");
 		return false;
 	}
 
-	switchController = CREATE_MODEL_INSTANCE(ShoogonIoTSystems, SwitchController);
+	switchController = CREATE_MODEL_INSTANCE(IoT, SwitchController);
 	if (switchController == nullptr)
 	{
-		LogInfo("Failed on CREATE_MODEL_INSTANCE\r\n");
+		Serial.write("Failed on CREATE_MODEL_INSTANCE\n");
 		return false;
 	}
 
 	if (IoTHubClient_LL_SetMessageCallback(iotHubClientHandle, IoTHubMessage, switchController) != IOTHUB_CLIENT_OK)
 	{
-		LogInfo("unable to IoTHubClient_SetMessageCallback\r\n");
+		Serial.write("unable to IoTHubClient_SetMessageCallback\n");
 		return false;
 	}
 	return true;
@@ -173,23 +146,23 @@ extern "C" bool AzureIoTHubSendMessage(char *deviceId, int status, int messageId
 	size_t destinationSize;
 	if (SERIALIZE(&destination, &destinationSize, switchController->DeviceId, switchController->Status) != IOT_AGENT_OK)
 	{
-		LogInfo("Failed to serialize\r\n");
+		Serial.write("Failed to serialize\n");
 	}
 
 	IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromByteArray(destination, destinationSize);
 	if (messageHandle == nullptr)
 	{
-		LogInfo("unable to create a new IoTHubMessage\r\n");
+		Serial.write("unable to create a new IoTHubMessage\n");
 	}
 	else
 	{
 		if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback, reinterpret_cast<void*>(messageId)) != IOTHUB_CLIENT_OK)
 		{
-			LogInfo("failed to hand over the message to IoTHubClient");
+			Serial.write("failed to hand over the message to IoTHubClient");
 		}
 		else
 		{
-			LogInfo("IoTHubClient accepted the message for delivery\r\n");
+			Serial.write("IoTHubClient accepted the message for delivery\n");
 			result = true;
 		}
 

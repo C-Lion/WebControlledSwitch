@@ -20,6 +20,7 @@ ConfigurationManager::ConfigurationManager()
 		_eepromInformationBlock.IoTHubDeviceId[0] = 0;
 		_eepromInformationBlock.milliSecondsButonLongTimePeriod = defaultButtonLongTimePeriod;
 		_eepromInformationBlock.milliSecondsButonVeryLongTimePeriod= defaultButtonVeryLongTimePeriod;
+		_eepromInformationBlock.milliSecondsPulseActivationTimePeriod = defaultPulseActivationTimePeriod;
 #ifdef PULSE_COMMAND
 		_eepromInformationBlock.bPulseRelay = true;
 #else
@@ -113,10 +114,11 @@ std::string ConfigurationManager::GetIoTHubDeviceId() const
 	return std::string(_eepromInformationBlock.IoTHubDeviceId);
 }
 
-void ConfigurationManager::SetButonPressTimesMilliSeconds(unsigned longPeriod, unsigned veryLongPeriod)
+void ConfigurationManager::SetButonPressTimesMilliSeconds(unsigned longPeriod, unsigned veryLongPeriod, unsigned int pulseActivationPeriod)
 {
 	_eepromInformationBlock.milliSecondsButonLongTimePeriod = longPeriod;
 	_eepromInformationBlock.milliSecondsButonVeryLongTimePeriod = veryLongPeriod;
+	_eepromInformationBlock.milliSecondsPulseActivationTimePeriod = pulseActivationPeriod;
 }
 
 

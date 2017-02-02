@@ -18,6 +18,7 @@
     <None Include="LedLightWebController.ino" />
     <None Include="ClassDiagram.cd" />
     <None Include="README.md" />
+    <None Include="WebSettings.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.LedLightWebController.vsarduino.h">

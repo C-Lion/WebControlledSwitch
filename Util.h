@@ -6,6 +6,7 @@
 #include "arduino.h"
 #include <string>
 #include <algorithm>
+#include <map>
 
 namespace Util
 {
@@ -18,6 +19,8 @@ namespace Util
 		std::copy_n(begin(str), length, arr);
 		arr[length] = 0; //make sure it is null terminated string
 	}
+
+	std::string CreateHTMLFromTemplate(const std::string& htmlTemplate, const std::map<std::string, std::string>& map);
 }
 
 

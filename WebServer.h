@@ -27,6 +27,12 @@ public:
 	virtual ~IWebCommand() {}
 };
 
+enum class PushButtonBehaviour
+{
+	Toggle,
+	Pulse
+};
+
 struct DeviceSettings
 {
 	bool isFactoryReset;
@@ -34,9 +40,11 @@ struct DeviceSettings
 	std::string accessPointPassword;
 	bool shouldUseAzureIoT;
 	std::string azureIoTHubConnectionString;
-	std::string AzureioTDeviceId;
+	std::string AzureIoTDeviceId;
 	unsigned int longButtonPeriod;
 	unsigned int veryLongButtonPeriod;
+	unsigned int PulseActivationPeriod;
+	PushButtonBehaviour PBBehavior;
 };
 
 typedef std::shared_ptr<IWebCommand> WebCommandPtr_t;
