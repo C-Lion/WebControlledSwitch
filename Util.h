@@ -4,7 +4,6 @@
 #define _UTIL_h
 
 #include "arduino.h"
-#include <string>
 #include <algorithm>
 #include <map>
 
@@ -13,14 +12,12 @@ namespace Util
 	void software_Reboot(); //rebot the board
 
 	template <typename T, std::size_t n>
-	void String2Array(const std::string &str, T(&arr)[n])
+	void String2Array(const String &str, T(&arr)[n])
 	{
-		auto length = std::min(n, str.length());
-		std::copy_n(begin(str), length, arr);
-		arr[length] = 0; //make sure it is null terminated string
+		memcpy(arr, str.c_str(), std::min(n, str.length() + 1));
 	}
 
-	std::string CreateHTMLFromTemplate(const std::string& htmlTemplate, const std::map<std::string, std::string>& map);
+	String CreateHTMLFromTemplate(const String& htmlTemplate, const std::map<String, String>& map);
 }
 
 

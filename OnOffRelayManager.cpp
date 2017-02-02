@@ -4,7 +4,7 @@
 
 #include "OnOffRelayManager.h"
 
-void OnOffRelayManager::OnCommand(const std::string &commandName, int commandId)
+void OnOffRelayManager::OnCommand(const String &commandName, int commandId)
 {
 	if (commandName == "On")
 		Set(HIGH);

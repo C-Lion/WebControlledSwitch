@@ -7,7 +7,6 @@
 #include "LedsLogger.h"
 #include "WebServer.h"
 #include <memory>
-#include <string>
 #include "Singleton.h"
 #include "ArduinoLoopManager.h"
 
@@ -19,12 +18,12 @@ private:
 	Logger(int redLedPin, int greenLedPin, int baudRate);
 public:
 	void Loop() override { _ledsLogger->Loop(); }
-	void OnCommand(const std::string & commandName, int commandId) const;
-	void WriteErrorMessage(const std::string &message, int blinks) const;
+	void OnCommand(const String &commandName, int commandId) const;
+	void WriteErrorMessage(const String &message, int blinks) const;
 	void OnWiFiStatusChanged(const ConnectionStatus& status) const;
 	void OnLongButtonPressDetection() const;
 	void OnVeryLongButtonPressDetection() const;
-	static void WriteMessage(const std::string& message);
+	static void WriteMessage(const String& message);
 	template<typename T>
 	static void WriteMessage(const T& message) { Serial.println(message); }
 	void TestLeds() const;

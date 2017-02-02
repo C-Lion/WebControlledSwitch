@@ -12,14 +12,14 @@ class RelayManager : public IProcessor
 private:
 	int _pin;
 	int _state;
-	std::function<void (const std::string &)> _logger;
+	std::function<void (const String &)> _logger;
 
 protected:
-	RelayManager(int pin, std::function<void(const std::string &)> logger);
+	RelayManager(int pin, std::function<void(const String &)> logger);
 
  public:
 	virtual ~RelayManager()	{}
-	virtual void OnCommand(const std::string & commandName, int commandId) = 0;
+	virtual void OnCommand(const String & commandName, int commandId) = 0;
 	virtual void Set(int value);
 	int State() const { return _state; }
 	void Loop() override {}

@@ -11,7 +11,7 @@ AzureIoTHubManager::AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t
 	wifiManager->RegisterClient([this](ConnectionStatus status) { UpdateStatus(status); });
 }
 
-void AzureIoTHubManager::HandleCommand(const std::string & commandName, int commandId, const char *logInfo) const
+void AzureIoTHubManager::HandleCommand(const String & commandName, int commandId, const char *logInfo) const
 {
 	_logger->WriteMessage("Received command: ");
 	_logger->WriteMessage(commandName);

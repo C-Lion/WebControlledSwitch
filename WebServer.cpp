@@ -10,7 +10,7 @@ using namespace std;
 WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater) :
 	_deviceSettings(move(deviceSettings)),
 	_server(port), 
-	_authorizedUrl(string("/") + appKey),
+	_authorizedUrl(String("/") + appKey),
 	_relayStateUpdater(relayStateUpdater)
 {
 	_server.on("/", [this]() { HandleError(); });
@@ -27,13 +27,13 @@ WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey,
 void WebServer::RegisterCommand(WebCommandPtr_t command)
 {
 	_webCommands.push_back(command);
-	auto url = string(CreateUrl(command->TriggerUrl()));
+	auto url = String(CreateUrl(command->TriggerUrl()));
 	_server.on(url.c_str(), [=]() {  HandleCommand(command); });
 }
 
-void WebServer::SendBackHtml(const string &message)
+void WebServer::SendBackHtml(const String &message)
 {
-	auto html = string("<html><body><h2>") + _header + "</h2>"
+	auto html = String("<html><body><h2>") + _header + "</h2>"
 		+ message + "</body></html>";
 	_server.send(200,
 		"text/html",
@@ -48,20 +48,20 @@ void WebServer::HandleError()
 
 void WebServer::HandleMain() 
 {
-	auto html = string("<p><h3>The current switch status is ") +
+	auto html = String("<p><h3>The current switch status is ") +
 	(_relayState ? "on" : "off") + "</h3></p>";
 	for (auto webCommand : _webCommands)
 	{
-		html += string(R"(<p><a href=")") + CreateUrl(webCommand->TriggerUrl()) + string(R"(">)") + webCommand->MenuEntry() + string("</a></p>");
+		html += String(R"(<p><a href=")") + CreateUrl(webCommand->TriggerUrl()) + String(R"(">)") + webCommand->MenuEntry() + String("</a></p>");
 	}
-	html += string(R"(<br/><br/><p><a href=")") + CreateUrl("resetaccesspoint") + string(R"(">Reset stored access point name and password</a></p>)");
+	html += String(R"(<br/><br/><p><a href=")") + CreateUrl("resetaccesspoint") + String(R"(">Reset stored access point name and password</a></p>)");
 	SendBackHtml(html);
 }
 
 
 void WebServer::HandleSetup()
 {
-	string html;
+	String html;
 	auto accessPointList = ConnectionStatus::GetAccessPoints();
 	for (auto &&ap : accessPointList)
 	{
@@ -79,7 +79,7 @@ void WebServer::HandleSetup()
 		html += R"("></li>)";
 	}
 	
-	std::map<string, string> templateValuesMap =
+	std::map<String, String> templateValuesMap =
 	{
 		{"AccessPointList" , html},
 		{"WiFiPassword", _deviceSettings->accessPointPassword},
@@ -89,23 +89,23 @@ void WebServer::HandleSetup()
 		{"PBPulseActivationPeriod", String(_deviceSettings->PulseActivationPeriod).c_str()}
 	};
 
-	const string checked = R"(checked="checked")";
+	const String checked = R"(checked="checked")";
 	if (_deviceSettings->shouldUseAzureIoT)
 	{
-		templateValuesMap.insert(pair<string, string>{ "AzureIoTHub", checked});
+		templateValuesMap.insert(pair<String, String>{ "AzureIoTHub", checked});
 	}
 	else
 	{
-		templateValuesMap.insert(pair<string, string>{ "WebServer", checked});
+		templateValuesMap.insert(pair<String, String>{ "WebServer", checked});
 	}
 
 	if (_deviceSettings->PBBehavior == PushButtonBehaviour::Toggle)
 	{
-		templateValuesMap.insert(pair<string, string>{ "PBBehaviourToggle", checked});
+		templateValuesMap.insert(pair<String, String>{ "PBBehaviourToggle", checked});
 	}
 	else
 	{
-		templateValuesMap.insert(pair<string, string>{ "PBBehaviourPulse", checked});
+		templateValuesMap.insert(pair<String, String>{ "PBBehaviourPulse", checked});
 	}
 
 	html = Util::CreateHTMLFromTemplate(WebSettingHtmlTemplate, templateValuesMap);
@@ -116,7 +116,7 @@ void WebServer::HandleSetAccessPoint()
 {
 	_deviceSettings->ssidName = _server.arg("ap").c_str();
 	_deviceSettings->accessPointPassword = _server.arg("password").c_str();
-	string html =
+	String html =
 		R"(<p><center><h3>The device will reboot and try to connect to:</h3></center></p><p>)";
 		html += _deviceSettings->ssidName;
 		html += "</p><br/>";
@@ -143,7 +143,7 @@ void WebServer::HandleResetAccessPoint()
 }
 void WebServer::HandleCommand(WebCommandPtr_t webCommand)
 {
-	auto html = string("<p><h3>") + webCommand->ResultHTML() +string("</h3></p>");
+	auto html = String("<p><h3>") + webCommand->ResultHTML() +String("</h3></p>");
 	_pubsub.NotifyAll(webCommand->Name(), webCommand->Id());
 	SendBackHtml(html);
 }
@@ -177,7 +177,7 @@ void WebServer::UpdateStatus(ConnectionStatus status)
 	}
 }
 
-std::string WebServer::CreateUrl(const std::string& s) const
+String WebServer::CreateUrl(const String& s) const
 {
 	return _authorizedUrl + "/" + s;
 }

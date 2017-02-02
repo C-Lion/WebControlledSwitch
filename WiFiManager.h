@@ -7,7 +7,6 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <WiFiUdp.h>
-#include <string>
 #include <vector>
 #include <array>
 #include <map>
@@ -31,12 +30,12 @@ enum class WiFiStatus
 
 struct AccessPointInfo
 {
-	std::string SSID;
+	String SSID;
 	int RSSI;
 	bool isEncripted;
 };
 
-class  ICACHE_FLASH_ATTR ConnectionStatus
+class ConnectionStatus
 {
 	friend class WiFiManager;
 private:
@@ -47,7 +46,7 @@ private:
 	bool _isAccessMode;
 
 	static std::map<int, WiFiStatus> _statusMap;
-	static std::array<std::string, 8> _messageMap;
+	static std::array<String, 8> _messageMap;
 	static std::list<AccessPointInfo>   _accessPointList;
 
 	static void ClearAccessPointList() { _accessPointList.clear(); }
@@ -60,7 +59,7 @@ private:
 public:
 	int WifiCode() const { return _status; }
 	WiFiStatus Code() const { return _statusMap[_status]; }
-	const std::string &Message() const {return _messageMap[_status];}
+	const String &Message() const {return _messageMap[_status];}
 	IPAddress LocalIP() const { return _localIP; }
 	bool IsJustConnected() const { return _justConnected; }
 	bool IsJustDissconnected() const { return _justDissconnected; }
@@ -71,7 +70,7 @@ public:
 
 typedef std::function<void (ConnectionStatus)> wifiNotificarionFunc_t;
 
-class  ICACHE_FLASH_ATTR WiFiManager : public Singleton<WiFiManager>, public IProcessor
+class WiFiManager : public Singleton<WiFiManager>, public IProcessor
 {
 	friend class Singleton<WiFiManager>;
 private:
@@ -83,7 +82,7 @@ private:
 
 	void UpdateStatus();
 	void NotifyAll(ConnectionStatus status) const;
-	ICACHE_FLASH_ATTR WiFiManager(const std::string &ssid, const std::string &password, bool isAccesspointMode);
+	WiFiManager(const String &ssid, const String &password, bool isAccesspointMode);
 
  public:
 	void RegisterClient(wifiNotificarionFunc_t notification);

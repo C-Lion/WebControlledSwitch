@@ -15,7 +15,7 @@ std::map<int, WiFiStatus>  ConnectionStatus::_statusMap =
 	{ WL_DISCONNECTED, WiFiStatus::dissconnected }
 };
 
-std::array<string, 8>  ConnectionStatus::_messageMap =
+std::array<String, 8>  ConnectionStatus::_messageMap =
 {
 	"Connected to a WiFi network",
 	"No WiFi shield is present",
@@ -28,7 +28,7 @@ std::array<string, 8>  ConnectionStatus::_messageMap =
 };
 std::list<AccessPointInfo>  ConnectionStatus::_accessPointList;
 
-WiFiManager::WiFiManager(const std::string &ssid, const std::string &password, bool isAccessPointMode)
+WiFiManager::WiFiManager(const String &ssid, const String &password, bool isAccessPointMode)
 {
 	if (isAccessPointMode)
 	{
@@ -46,7 +46,7 @@ WiFiManager::WiFiManager(const std::string &ssid, const std::string &password, b
 			Serial.println(" networks found");
 			for (int i = 0; i < n; ++i)
 			{
-				ConnectionStatus::AddAccessPointInfo(AccessPointInfo{ std::string(WiFi.SSID(i).c_str()), WiFi.RSSI(i) ,WiFi.encryptionType(i) == ENC_TYPE_NONE });
+				ConnectionStatus::AddAccessPointInfo(AccessPointInfo{ String(WiFi.SSID(i).c_str()), WiFi.RSSI(i) ,WiFi.encryptionType(i) == ENC_TYPE_NONE });
 			}
 		}
 		Serial.println("Setting access point mode to ap name: ");
@@ -113,7 +113,7 @@ void WiFiManager::UpdateStatus()
 	NotifyAll(ConnectionStatus(WiFi.status(), WiFi.localIP(), justConnected, justDissconnected));
 }
 
-ConnectionStatus  ICACHE_FLASH_ATTR WiFiManager::GetStatus() const
+ConnectionStatus WiFiManager::GetStatus() const
 {
 	return ConnectionStatus(WiFi.status(), WiFi.localIP());
 }

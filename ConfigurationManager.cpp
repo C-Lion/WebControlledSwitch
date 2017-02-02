@@ -76,23 +76,23 @@ void ConfigurationManager::FlashEEPROMInfo()
 }
 
 
-std::string ConfigurationManager::GetSSID() const
+String ConfigurationManager::GetSSID() const
 {
-	return std::string(_eepromInformationBlock.SSIDName);
+	return String(_eepromInformationBlock.SSIDName);
 }
 
-std::string ConfigurationManager::GetAccessPointPassword() const
+String ConfigurationManager::GetAccessPointPassword() const
 {
-	return std::string(_eepromInformationBlock.AccessPointPassword);
+	return String(_eepromInformationBlock.AccessPointPassword);
 }
 
-void ConfigurationManager::SetWiFiCredentials(const std::string& SSID, const std::string& password)
+void ConfigurationManager::SetWiFiCredentials(const String& SSID, const String& password)
 {
 	Util::String2Array(SSID, _eepromInformationBlock.SSIDName);
 	Util::String2Array(password, _eepromInformationBlock.AccessPointPassword);
 }
 
-void ConfigurationManager::SetAzureIoTHubInformation(const std::string& azureIoTConnectionString, const std::string& iotHubDeviceId)
+void ConfigurationManager::SetAzureIoTHubInformation(const String& azureIoTConnectionString, const String& iotHubDeviceId)
 {
 	_eepromInformationBlock.bUseAzureIoTHub = true;
 	Util::String2Array(azureIoTConnectionString, _eepromInformationBlock.AzureIoTHubConnectionString);
@@ -104,14 +104,14 @@ void ConfigurationManager::SetWebServerMode()
 	_eepromInformationBlock.bUseAzureIoTHub = false;
 }
 
-std::string ConfigurationManager::GetAzureIoTConnectionString()
+String ConfigurationManager::GetAzureIoTConnectionString()
 {
-	return std::string(_eepromInformationBlock.AzureIoTHubConnectionString);
+	return String(_eepromInformationBlock.AzureIoTHubConnectionString);
 }
 
-std::string ConfigurationManager::GetIoTHubDeviceId() const
+String ConfigurationManager::GetIoTHubDeviceId() const
 {
-	return std::string(_eepromInformationBlock.IoTHubDeviceId);
+	return String(_eepromInformationBlock.IoTHubDeviceId);
 }
 
 void ConfigurationManager::SetButonPressTimesMilliSeconds(unsigned longPeriod, unsigned veryLongPeriod, unsigned int pulseActivationPeriod)

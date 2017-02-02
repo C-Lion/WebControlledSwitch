@@ -2,7 +2,6 @@
 
 #ifndef _CONFIGURATIONMANAGER_h
 #define _CONFIGURATIONMANAGER_h
-#include <string>
 #include <algorithm>
 #include "Singleton.h"
 #include "WebServer.h"
@@ -41,13 +40,13 @@ private:
 	ConfigurationManager();
 
  public:
-	std::string GetSSID() const;
-	std::string GetAccessPointPassword() const;
-	void SetWiFiCredentials(const std::string& SSID, const std::string& password);
-	void SetAzureIoTHubInformation(const std::string &azureIoTConnectionString, const std::string &iotHubDeviceId);
+	String GetSSID() const;
+	String GetAccessPointPassword() const;
+	void SetWiFiCredentials(const String& SSID, const String& password);
+	void SetAzureIoTHubInformation(const String &azureIoTConnectionString, const String &iotHubDeviceId);
 	void SetWebServerMode(); //don't use Azure IoT
-	std::string GetAzureIoTConnectionString();
-	std::string GetIoTHubDeviceId() const;
+	String GetAzureIoTConnectionString();
+	String GetIoTHubDeviceId() const;
 	void SetButonPressTimesMilliSeconds(unsigned int longPeriod, unsigned int veryLongPeriod, unsigned int pulseActivationPeriod);
 	unsigned int GetLongPeriodButonPressTimesMilliSeconds() const { return _eepromInformationBlock.milliSecondsButonLongTimePeriod; }
 	bool ShouldUseAzureIoTHub() { return _eepromInformationBlock.bUseAzureIoTHub; }

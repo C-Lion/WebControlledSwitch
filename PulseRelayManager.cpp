@@ -4,7 +4,7 @@
 
 #include "PulseRelayManager.h"
 
-PulseRelayManager::PulseRelayManager(int pin, unsigned long pulseDelay, std::function<void(const std::string &)> logger) : RelayManager(pin, logger), _pulseDelay(pulseDelay)
+PulseRelayManager::PulseRelayManager(int pin, unsigned long pulseDelay, std::function<void(const String &)> logger) : RelayManager(pin, logger), _pulseDelay(pulseDelay)
 {
 	pinMode(pin, OUTPUT);
 	digitalWrite(pin, LOW);
@@ -16,7 +16,7 @@ void PulseRelayManager::Set(int value)
 	_startTime = millis();
 }
 
-void PulseRelayManager::OnCommand(const std::string& commandName, int commandId)
+void PulseRelayManager::OnCommand(const String& commandName, int commandId)
 {
 	Serial.print("Pulse relay manager received command:");
 	Serial.print(commandName.c_str());

@@ -1,9 +1,12 @@
+
+#include <AzureIoTUtility.h>
 #include <EEPROM.h>
 #include "ConfigurationManager.h"
 #include "ArduinoLoopManager.h"
 #include "PubSub.h"
 #include "AzureIoTHubHttpClient.h"
 #include "Singleton.h"
+//#include <iot_logging.h>
 #include <AzureIoTHubClient.h>
 #include <AzureIoTHub.h>
 #include <Arduino.h>
@@ -18,6 +21,7 @@
 #include "AzureIoTHubManager.h"
 #include <memory>
 #include "Configuration.h"
+
 
 using namespace std;
 
@@ -41,8 +45,8 @@ ConfigurationManager_t configurationManger;
 template<typename T>
 void SubscribeRemoteCommands(std::shared_ptr<T> server)
 {
-	server->Register([](const string &commandName, int id) {logger->OnCommand(commandName, id); });
-	server->Register([](const string &commandName, int id) {relayManager->OnCommand(commandName, id); });
+	server->Register([](const String &commandName, int id) {logger->OnCommand(commandName, id); });
+	server->Register([](const String &commandName, int id) {relayManager->OnCommand(commandName, id); });
 }
 
 
@@ -58,15 +62,15 @@ class WebCommand : public IWebCommand, public enable_shared_from_this<WebCommand
 {
 private:
 	static int s_id;
-	const string _menuEnrty;
-	const string _commandName;
-	const string _resultHtml;
+	const String _menuEnrty;
+	const String _commandName;
+	const String _resultHtml;
 	const int _id = ++s_id;
 	weak_ptr<WebServer> _webServer;
 
 public:
-	WebCommand(string menuEntry, string commandName, WebServerPtr_t webServer) : _menuEnrty(menuEntry), _commandName(commandName),
-		_resultHtml(string("Processing ") + _commandName + " Command"), _webServer(webServer)
+	WebCommand(String menuEntry, String commandName, WebServerPtr_t webServer) : _menuEnrty(menuEntry), _commandName(commandName),
+		_resultHtml(String("Processing ") + _commandName + " Command"), _webServer(webServer)
 	{
 	}
 
@@ -75,21 +79,21 @@ public:
 		_webServer.lock()->RegisterCommand(shared_from_this());
 	}
 
-	const string& MenuEntry() const override
+	const String& MenuEntry() const override
 	{
 		return _menuEnrty;
 	}
 
-	const string& Name() const override
+	const String& Name() const override
 	{
 		return _commandName;
 	}
 
-	const string& ResultHTML() const override
+	const String& ResultHTML() const override
 	{
 		return _resultHtml;
 	}
-	const string& TriggerUrl() const override
+	const String& TriggerUrl() const override
 	{
 		return _commandName;
 	}
@@ -119,7 +123,7 @@ void SetupWebServer()
 	deviceSettings->PBBehavior = configurationManger->GetRelayMode() == RelayMode::Pulse ? PushButtonBehaviour::Pulse : PushButtonBehaviour::Toggle;
 
 	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return relayManager->State(); });
-	webServer->SetWebSiteHeader(string(webSiteHeader));
+	webServer->SetWebSiteHeader(String(webSiteHeader));
 	webServer->SetUpdateConfiguration([](const DeviceSettings& deviceSettings)
 	{
 		if (deviceSettings.isFactoryReset)
@@ -202,12 +206,12 @@ void setup()
 	if (configurationManger->GetRelayMode() == RelayMode::Pulse)
 	{
 		pushButtonManager = MementaryPushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
-		relayManager = PulseRelayManager::Create(relay, 1000, [=](const string &message) { logger->WriteMessage(message); });
+		relayManager = PulseRelayManager::Create(relay, 1000, [=](const String &message) { logger->WriteMessage(message); });
 	}
 	else
 	{
 		pushButtonManager = TogglePushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
-		relayManager = OnOffRelayManager::Create(relay, [=](const string &message) { logger->WriteMessage(message); });
+		relayManager = OnOffRelayManager::Create(relay, [=](const String &message) { logger->WriteMessage(message); });
 	}
 
 	if (configurationManger->ShouldUseAzureIoTHub())

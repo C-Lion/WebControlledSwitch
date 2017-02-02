@@ -16,7 +16,7 @@
 
 class SwitchController;
 
-typedef std::function<void(const std::string&, int)> IAzureIoTHubCommandNotificationPtr_t;
+typedef std::function<void(const String&, int)> IAzureIoTHubCommandNotificationPtr_t;
 class AzureIoTHubManager : public Singleton<AzureIoTHubManager>, public IProcessor
 {
 	friend class Singleton<AzureIoTHubManager>;
@@ -27,7 +27,7 @@ private:
 	static AzureIoTHubClient _iotHubClient;
 	bool _isTimeInitiated = false;
 	bool _isIotHubClientInitiated = false;
-	PubSub<AzureIoTHubManager, const std::string&, int> _pubsub;
+	PubSub<AzureIoTHubManager, const String&, int> _pubsub;
 	bool _relayState = false;
 	LoggerPtr_t _logger;
 	bool _IsInitTime = false;
@@ -37,7 +37,7 @@ private:
 	bool CheckTimeInitiated();
 	bool CheckIoTHubClientInitiated();
 	
-	void HandleCommand(const std::string & commandName, int commandId, const char *logInfo) const;
+	void HandleCommand(const String & commandName, int commandId, const char *logInfo) const;
 	AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t logger, const char* connectionString);
 	
  public:

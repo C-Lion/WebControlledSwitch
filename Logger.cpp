@@ -7,14 +7,13 @@ Logger::Logger(int redLedPin, int greenLedPin, int baudRate /*= 115200*/): _leds
 	Serial.setDebugOutput(true);
 }
 
-void Logger::OnCommand(const std::string & commandName, int commandId) const
+void Logger::OnCommand(const String &commandName, int commandId) const
 {
-	string log(commandName + " command recieved");
-	Serial.println(log.c_str());
+	Serial.println(commandName + " command recieved");
 	_ledsLogger->BlinkGreen(commandId, 250);
 }
 
-void Logger::WriteErrorMessage(const std::string& message, int blinks) const
+void Logger::WriteErrorMessage(const String& message, int blinks) const
 {
 	Serial.println(message.c_str());
 	_ledsLogger->BlinkRed(blinks, 300);
@@ -26,8 +25,8 @@ void Logger::OnWiFiStatusChanged(const ConnectionStatus& status) const
 
 	if (status.IsAccessModeOn())
 	{
-		_ledsLogger->BlinkGreen(1000000, 100);
-		_ledsLogger->BlinkRed(1000000, 100);
+		_ledsLogger->BlinkGreen(1000000, 150);
+		_ledsLogger->BlinkRed(1000000, 150);
 		return;
 	}
 	if (status.IsJustConnected())
@@ -62,7 +61,7 @@ void Logger::OnVeryLongButtonPressDetection() const
 	_ledsLogger->BlinkRed(10000, 20);
 }
 
-void Logger::WriteMessage(const std::string& message)
+void Logger::WriteMessage(const String& message)
 {
 	Serial.println(message.c_str());
 }

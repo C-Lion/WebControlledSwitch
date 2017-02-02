@@ -1,8 +1,8 @@
-﻿#include <string>
+﻿#include <String>
 #ifndef _WEBSETTINGSTEMPLATE_h
 #define _WEBSETTINGSTEMPLATE_h
 
-const std::string WebSettingHtmlTemplate = R"(
+const String WebSettingHtmlTemplate = R"(
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -40,7 +40,7 @@ const std::string WebSettingHtmlTemplate = R"(
                 <li>
                     <h3>Microsoft Azure IoT Hub Configuration</h3>
                     <p>
-                        Enter the Azure IoT Hub device connection string.
+                        Enter the Azure IoT Hub device connection String.
                         Read more information <a href="https://azure.microsoft.com/en-us/services/iot-hub/">here</a> and <a href="https://azure.microsoft.com/en-us/documentation/articles/iot-hub-device-sdk-c-intro/">here.</a>
                     </p>
                 </li>
@@ -48,7 +48,7 @@ const std::string WebSettingHtmlTemplate = R"(
                     <label>Azure IoT Hub Connection String: </label>
                     <div>
                         <input name="IoTHubConnectionString" type="text" size="160" maxlength="255" value="<%=IoTHubConnectionString%>" />
-                    </div><p><small>Use Azure IoT Hub Explorer to register a device and generate the required connection string</small></p>
+                    </div><p><small>Use Azure IoT Hub Explorer to register a device and generate the required connection String</small></p>
                 </li>
                 <li>
                     <label>Device Id Name </label>

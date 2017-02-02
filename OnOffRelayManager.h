@@ -11,7 +11,7 @@ class OnOffRelayManager : public RelayManager, public Singleton<OnOffRelayManage
 private:
 	using RelayManager::RelayManager;
 
-	void OnCommand(const std::string & commandName, int commandId) override;
+	void OnCommand(const String & commandName, int commandId) override;
 
 };
 

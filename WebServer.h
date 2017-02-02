@@ -8,7 +8,7 @@
 #undef ARDUINO_BOARD
 #define ARDUINO_BOARD "generic"
 #include <ESP8266mDNS.h>
-#include <string>
+#include <String>
 #include <memory>
 #include "WiFiManager.h"
 #include "Singleton.h"
@@ -18,11 +18,11 @@
 class IWebCommand
 {
 public:
-	virtual const std::string& Name() const = 0;
+	virtual const String& Name() const = 0;
 	virtual int Id() const = 0;
-	virtual const std::string& MenuEntry() const = 0; 
-	virtual const std::string& ResultHTML() const = 0;
-	virtual const std::string& TriggerUrl() const = 0;
+	virtual const String& MenuEntry() const = 0; 
+	virtual const String& ResultHTML() const = 0;
+	virtual const String& TriggerUrl() const = 0;
 
 	virtual ~IWebCommand() {}
 };
@@ -36,11 +36,11 @@ enum class PushButtonBehaviour
 struct DeviceSettings
 {
 	bool isFactoryReset;
-	std::string ssidName;
-	std::string accessPointPassword;
+	String ssidName;
+	String accessPointPassword;
 	bool shouldUseAzureIoT;
-	std::string azureIoTHubConnectionString;
-	std::string AzureIoTDeviceId;
+	String azureIoTHubConnectionString;
+	String AzureIoTDeviceId;
 	unsigned int longButtonPeriod;
 	unsigned int veryLongButtonPeriod;
 	unsigned int PulseActivationPeriod;
@@ -48,24 +48,24 @@ struct DeviceSettings
 };
 
 typedef std::shared_ptr<IWebCommand> WebCommandPtr_t;
-typedef std::function<void(const std::string&, int)> WebNotificationPtr_t;
+typedef std::function<void(const String&, int)> WebNotificationPtr_t;
 class WebServer : public Singleton<WebServer>, public IProcessor
 {
 	friend class Singleton<WebServer>;
 private:
 	std::unique_ptr<DeviceSettings> _deviceSettings;
 	ESP8266WebServer _server;
-	PubSub<WebServer, const std::string&, int> _pubsub;
+	PubSub<WebServer, const String&, int> _pubsub;
 	bool _relayState = false;
-	std::string _header;
-	const std::string _authorizedUrl;
+	String _header;
+	const String _authorizedUrl;
 	std::vector<WebCommandPtr_t> _webCommands;
 	bool _isInit = false;
 	std::function<bool()> _relayStateUpdater;
 	std::function<void(const DeviceSettings&)> _configurationUpdater;
-	void SendBackHtml(const std::string &message);
+	void SendBackHtml(const String &message);
 	void UpdateStatus(ConnectionStatus status);
-	std::string CreateUrl(const std::string &s) const;
+	String CreateUrl(const String &s) const;
 	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater);
 
  public:

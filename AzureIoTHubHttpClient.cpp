@@ -144,7 +144,7 @@ extern "C" bool AzureIoTHubSendMessage(char *deviceId, int status, int messageId
 
 	unsigned char* destination;
 	size_t destinationSize;
-	if (SERIALIZE(&destination, &destinationSize, switchController->DeviceId, switchController->Status) != IOT_AGENT_OK)
+	if (SERIALIZE(&destination, &destinationSize, switchController->DeviceId, switchController->Status) != CODEFIRST_OK)
 	{
 		Serial.write("Failed to serialize\n");
 	}
