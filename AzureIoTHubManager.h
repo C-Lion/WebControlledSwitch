@@ -20,7 +20,9 @@ typedef std::function<void(const String&, int)> IAzureIoTHubCommandNotificationP
 class AzureIoTHubManager : public Singleton<AzureIoTHubManager>, public IProcessor
 {
 	friend class Singleton<AzureIoTHubManager>;
-	friend EXECUTE_COMMAND_RESULT Command(SwitchController* device, int commandId, char *commandName, char *logInfo);
+	friend EXECUTE_COMMAND_RESULT Activate(SwitchController* device, char *logInfo);
+	friend EXECUTE_COMMAND_RESULT TurnOn(SwitchController* device, char *logInfo);
+	friend EXECUTE_COMMAND_RESULT TurnOff(SwitchController* device, char *logInfo);
 
 private:
 	static WiFiClientSecure _sslWiFiClient;
@@ -36,7 +38,9 @@ private:
 	void UpdateStatus(ConnectionStatus status);
 	bool CheckTimeInitiated();
 	bool CheckIoTHubClientInitiated();
-	
+	void OnActivate(const char* logInfo) const;
+	void OnTurnOn(const char* logInfo) const;
+	void OnTurnOff(const char* logInfo) const;
 	void HandleCommand(const String & commandName, int commandId, const char *logInfo) const;
 	AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t logger, const char* connectionString);
 	

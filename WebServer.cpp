@@ -6,7 +6,7 @@
 
 
 using namespace std;
-/*static*/ char WebServer::_setupHtmlBuffer[3072]; //for setup html result
+///*static*/ char WebServer::_setupHtmlBuffer[3072]; //for setup html result
 WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater) :
 	_deviceSettings(move(deviceSettings)),
 	_server(port), 
@@ -117,7 +117,7 @@ void WebServer::HandleSetup()
 	_server.send(200, "text/html", _setupHtmlBuffer);
 }
 
-void WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map) const
+void WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map) 
 {
 	int index = 0;
 	int bufferIndex = 0;

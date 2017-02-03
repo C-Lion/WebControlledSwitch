@@ -17,7 +17,7 @@ ConfigurationManager::ConfigurationManager()
 		Util::String2Array(password, _eepromInformationBlock.AccessPointPassword);
 		_eepromInformationBlock.bUseAzureIoTHub = false; //use WebServer mode in Access Point mode
 		_eepromInformationBlock.AzureIoTHubConnectionString[0] = 0;
-		_eepromInformationBlock.IoTHubDeviceId[0] = WiFi.;
+		_eepromInformationBlock.IoTHubDeviceId[0] = 0;//TODO: change to unique id (MAC address?)
 		_eepromInformationBlock.milliSecondsButonLongTimePeriod = defaultButtonLongTimePeriod;
 		_eepromInformationBlock.milliSecondsButonVeryLongTimePeriod= defaultButtonVeryLongTimePeriod;
 		_eepromInformationBlock.milliSecondsPulseActivationTimePeriod = defaultPulseActivationTimePeriod;

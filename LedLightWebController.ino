@@ -63,7 +63,8 @@ AzureIoTHubManagerPtr_t azureIoTHubManager;
 
 void SetupAzureIoTHubManager()
 {
-	azureIoTHubManager = AzureIoTHubManager::Create(wifiManager, logger, azureIoTHubDeviceConnectionString);
+	char *connectionString = strdup(configurationManger->GetAzureIoTConnectionString().c_str()); //use only once, so not really a memory leak
+	azureIoTHubManager = AzureIoTHubManager::Create(wifiManager, logger, connectionString);
 	SubscribeRemoteCommands(azureIoTHubManager);
 }
 
