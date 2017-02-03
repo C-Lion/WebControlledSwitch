@@ -4,7 +4,7 @@
 using namespace std;
 
 WiFiClientSecure AzureIoTHubManager::_sslWiFiClient;
-AzureIoTHubClient AzureIoTHubManager::_iotHubClient(_sslWiFiClient);
+AzureIoTHubClient AzureIoTHubManager::_iotHubClient;
 
 AzureIoTHubManager::AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t logger, const char* connectionString) :  _logger(logger), _azureIoTHubDeviceConnectionString(connectionString)
 {
@@ -52,7 +52,7 @@ bool AzureIoTHubManager::CheckIoTHubClientInitiated()
 	if (_isIotHubClientInitiated)
 		return true;
 
-	_iotHubClient.begin();
+	_iotHubClient.begin(_sslWiFiClient);
 
 	if (!AzureIoTHubInit(_azureIoTHubDeviceConnectionString))
 		return false;

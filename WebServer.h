@@ -53,6 +53,7 @@ class WebServer : public Singleton<WebServer>, public IProcessor
 {
 	friend class Singleton<WebServer>;
 private:
+	static char _setupHtmlBuffer[3072]; //for setup html result
 	std::unique_ptr<DeviceSettings> _deviceSettings;
 	ESP8266WebServer _server;
 	PubSub<WebServer, const String&, int> _pubsub;
@@ -66,6 +67,7 @@ private:
 	void SendBackHtml(const String &message);
 	void UpdateStatus(ConnectionStatus status);
 	String CreateUrl(const String &s) const;
+	void PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map) const;
 	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater);
 
  public:
@@ -76,6 +78,7 @@ private:
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	void HandleMain();
 	void HandleSetup();
+	
 	void HandleSetAccessPoint();
 	void HandleResetAccessPoint();
 	void HandleError();

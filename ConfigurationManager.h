@@ -37,6 +37,7 @@ private:
 	void ReadEEPROMInfo();
 	void FlashEEPROMInfo();
 
+	void DumpEEPromInfo();
 	ConfigurationManager();
 
  public:

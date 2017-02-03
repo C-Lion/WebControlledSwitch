@@ -16,8 +16,6 @@ namespace Util
 	{
 		memcpy(arr, str.c_str(), std::min(n, str.length() + 1));
 	}
-
-	String CreateHTMLFromTemplate(const String& htmlTemplate, const std::map<String, String>& map);
 }
 
 

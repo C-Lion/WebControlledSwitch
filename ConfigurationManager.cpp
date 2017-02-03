@@ -27,6 +27,7 @@ ConfigurationManager::ConfigurationManager()
 		_eepromInformationBlock.bPulseRelay = false;
 #endif
 	}
+	DumpEEPromInfo();
 }
 
 void ConfigurationManager::FacrotyReset()
@@ -73,6 +74,22 @@ void ConfigurationManager::FlashEEPROMInfo()
 	for (int i = sizeof(_eepromInformationBlock._magicNumber); i < sizeof(_eepromInformationBlock); ++i)
 		EEPROM.write(i, *(reinterpret_cast<char *>(&_eepromInformationBlock) + i));
 	EEPROM.commit();
+	DumpEEPromInfo();
+}
+
+void ConfigurationManager::DumpEEPromInfo()
+{
+	Serial.printf("EEProm Configuration Block:\n");
+	Serial.printf("Magic: %s\n", _eepromInformationBlock._magicNumber);
+	Serial.printf("SSIDName: %s\n", _eepromInformationBlock.SSIDName);
+	Serial.printf("AccessPointPassword: %s\n", _eepromInformationBlock.AccessPointPassword);
+	Serial.printf("AzureIoTHubConnectionString: %s\n", _eepromInformationBlock.AzureIoTHubConnectionString);
+	Serial.printf("IoTHubDeviceId: %s\n", _eepromInformationBlock.IoTHubDeviceId);
+	Serial.printf("milliSecondsButonLongTimePeriod: %d\n", _eepromInformationBlock.milliSecondsButonLongTimePeriod);
+	Serial.printf("milliSecondsButonVeryLongTimePeriod: %d\n", _eepromInformationBlock.milliSecondsButonVeryLongTimePeriod);
+	Serial.printf("milliSecondsPulseActivationTimePeriod: %d\n", _eepromInformationBlock.milliSecondsPulseActivationTimePeriod);
+	Serial.printf("connection mode: %s\n", _eepromInformationBlock.bUseAzureIoTHub ? "AzureIoTHub" : "Web Server");
+	Serial.printf("relay mode: %s\n", _eepromInformationBlock.bPulseRelay ? "Pulse" : "Toggle");
 }
 
 

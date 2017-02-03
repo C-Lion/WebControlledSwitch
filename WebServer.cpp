@@ -6,7 +6,7 @@
 
 
 using namespace std;
-
+/*static*/ char WebServer::_setupHtmlBuffer[3072]; //for setup html result
 WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater) :
 	_deviceSettings(move(deviceSettings)),
 	_server(port), 
@@ -78,12 +78,13 @@ void WebServer::HandleSetup()
 			html += R"( checked="checked" )";
 		html += R"("></li>)";
 	}
-	
+	//Serial.printf(html.c_str());
 	std::map<String, String> templateValuesMap =
 	{
 		{"AccessPointList" , html},
 		{"WiFiPassword", _deviceSettings->accessPointPassword},
 		{"DeviceId", _deviceSettings->AzureIoTDeviceId},
+		{"IoTHubConnectionString", _deviceSettings->azureIoTHubConnectionString},
 		{"PBLongPress", String(_deviceSettings->longButtonPeriod).c_str()},
 		{"PBVeryLongPress", String(_deviceSettings->veryLongButtonPeriod).c_str()},
 		{"PBPulseActivationPeriod", String(_deviceSettings->PulseActivationPeriod).c_str()}
@@ -93,29 +94,86 @@ void WebServer::HandleSetup()
 	if (_deviceSettings->shouldUseAzureIoT)
 	{
 		templateValuesMap.insert(pair<String, String>{ "AzureIoTHub", checked});
+		templateValuesMap.insert(pair<String, String>{ "WebServer", ""});
 	}
 	else
 	{
 		templateValuesMap.insert(pair<String, String>{ "WebServer", checked});
+		templateValuesMap.insert(pair<String, String>{ "AzureIoTHub", ""});
 	}
 
 	if (_deviceSettings->PBBehavior == PushButtonBehaviour::Toggle)
 	{
 		templateValuesMap.insert(pair<String, String>{ "PBBehaviourToggle", checked});
+		templateValuesMap.insert(pair<String, String>{ "PBBehaviourPulse", ""});
 	}
 	else
 	{
 		templateValuesMap.insert(pair<String, String>{ "PBBehaviourPulse", checked});
+		templateValuesMap.insert(pair<String, String>{ "PBBehaviourToggle", ""});
 	}
 
-	html = Util::CreateHTMLFromTemplate(WebSettingHtmlTemplate, templateValuesMap);
-	SendBackHtml(html);
+	PopulateHTMLSetupFromTemplate(WebSettingHtmlTemplate, templateValuesMap);
+	_server.send(200, "text/html", _setupHtmlBuffer);
+}
+
+void WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map) const
+{
+	int index = 0;
+	int bufferIndex = 0;
+	int end = -1;
+	do
+	{
+		int beginVariable = htmlTemplate.indexOf('%', index); //search <%= by searching %
+		int endVariable = -1;
+		if (beginVariable >= 0) //only if beginVariable didn't reach the end of html
+			endVariable = htmlTemplate.indexOf('%', beginVariable + 1);
+
+		if (beginVariable < 0 || endVariable < 0) //no more variables
+		{
+			//Serial.printf("No more variables");
+			auto rest = htmlTemplate.substring(index); //add the template end
+			memcpy(_setupHtmlBuffer + bufferIndex, rest.c_str(), rest.length() + 1); //copy the template tail
+			bufferIndex += rest.length() + 1;
+			break;
+		}
+
+		if (htmlTemplate[beginVariable - 1] != '<' || htmlTemplate[beginVariable + 1] != '=' || htmlTemplate[endVariable + 1] != '>') //not <%= ... %>
+		{
+			_setupHtmlBuffer[bufferIndex++] = htmlTemplate[index];
+			++index;
+			continue;
+		}
+		auto variableName = htmlTemplate.substring(beginVariable + 2, endVariable);
+		Serial.printf("Found variable name: %s\n", variableName.c_str());
+		String replacedValue = map.at(variableName); //extract only the variable name and replace it
+		Serial.printf("Replaced with: %s\n", replacedValue.c_str());
+		Serial.printf("index: %d   begin: %d end: %d, found: %s\n***\n\n", index, beginVariable, endVariable, variableName.c_str());
+		String htmlUntilVariable = htmlTemplate.substring(index, beginVariable - 1);
+
+		//Add all text before the variable and the replacement
+		memcpy(_setupHtmlBuffer + bufferIndex, htmlUntilVariable.c_str(), htmlUntilVariable.length());
+		bufferIndex += htmlUntilVariable.length();
+		memcpy(_setupHtmlBuffer + bufferIndex, replacedValue.c_str(), replacedValue.length());
+		bufferIndex += replacedValue.length();
+		_setupHtmlBuffer[bufferIndex] = 0;
+		//Serial.printf("So far %s\n", String(resultBuffer).c_str());
+		index = endVariable + 2;
+	} while (index != end);
 }
 
 void WebServer::HandleSetAccessPoint()
 {
 	_deviceSettings->ssidName = _server.arg("ap").c_str();
-	_deviceSettings->accessPointPassword = _server.arg("password").c_str();
+	_deviceSettings->accessPointPassword = _server.arg("WiFiPassword").c_str();
+	_deviceSettings->AzureIoTDeviceId = _server.arg("DeviceId").c_str();
+	_deviceSettings->azureIoTHubConnectionString = _server.arg("IoTHubConnectionString").c_str();
+	_deviceSettings->longButtonPeriod = atoi(_server.arg("PBLongPress").c_str());
+	_deviceSettings->veryLongButtonPeriod = atoi(_server.arg("PBVeryLongPress").c_str());
+	_deviceSettings->PulseActivationPeriod = atoi(_server.arg("PBPulseActivationPeriod").c_str());
+	_deviceSettings->shouldUseAzureIoT = _server.arg("WebServerOrAzureIoTHub") == "AzureIoTHub";
+	_deviceSettings->PBBehavior = _server.arg("PBBehaviour") == "PBBehaviourPulse" ? PushButtonBehaviour::Pulse : PushButtonBehaviour::Toggle; 
+
 	String html =
 		R"(<p><center><h3>The device will reboot and try to connect to:</h3></center></p><p>)";
 		html += _deviceSettings->ssidName;

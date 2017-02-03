@@ -1,15 +1,25 @@
 
+#include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
+#include <WiFiUdp.h>
+#include <WiFiServer.h>
+#include <WiFiClientSecure.h>
+#include <WiFiClient.h>
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
+#include <WiFiUdp.h>
+#include <AzureIoTHub.h>
 #include <AzureIoTUtility.h>
+#include <AzureIoTProtocol_HTTP.h>
+#include <AzureIoTHubClient.h>
+#include <dummy.h>
 #include <EEPROM.h>
+#include <Arduino.h>
 #include "ConfigurationManager.h"
 #include "ArduinoLoopManager.h"
 #include "PubSub.h"
 #include "AzureIoTHubHttpClient.h"
 #include "Singleton.h"
-//#include <iot_logging.h>
-#include <AzureIoTHubClient.h>
-#include <AzureIoTHub.h>
-#include <Arduino.h>
 #include "OnOffRelayManager.h"
 #include "PulseRelayManager.h"
 #include "Util.h"
@@ -21,7 +31,6 @@
 #include "AzureIoTHubManager.h"
 #include <memory>
 #include "Configuration.h"
-
 
 using namespace std;
 
