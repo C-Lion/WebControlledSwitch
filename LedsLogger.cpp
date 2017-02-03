@@ -36,7 +36,7 @@ void LedsLogger::Led::Update()
 		}
 		else
 		{
-			digitalWrite(_ledPin, _ledValue); //at the end, set the led to the last value
+			digitalWrite(_ledPin, _lastSetVLedValue); //at the end, set the led to the last value
 		}
 	}
 }
@@ -57,7 +57,7 @@ void LedsLogger::Led::BlinkNextIpDigit()
 		_bBlinkingIpAddress = false;
 		_currentBlinkingIpDigit = 2;
 		_currentBlinkingIpOctec = 0;
-		digitalWrite(_ledPin, _ledValue); //at the end, set the led to the last value
+		digitalWrite(_ledPin, _lastSetVLedValue); //at the end, set the led to the last value
 		Serial.println("Finish blinking IP Address");
 		return;
 	}
@@ -101,7 +101,7 @@ void LedsLogger::Led::Blink(int times, int delay, int delayBeforeStart /*= 0 */)
 void LedsLogger::Led::Set(int value)
 {
 	_times = 0; //stop blinking
-	_ledValue = value;
+	_ledValue = _lastSetVLedValue = value;
 	digitalWrite(_ledPin, _ledValue);
 }
 

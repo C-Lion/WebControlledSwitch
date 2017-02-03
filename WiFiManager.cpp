@@ -28,28 +28,33 @@ std::array<String, 8>  ConnectionStatus::_messageMap =
 };
 std::list<AccessPointInfo>  ConnectionStatus::_accessPointList;
 
+void WiFiManager::PopulateWiFiNetworks()
+{
+	int n = WiFi.scanNetworks();
+	Serial.println("scan done");
+	if (n == 0)
+		Serial.println("no networks found");
+	else
+	{
+		Serial.print(n);
+		Serial.println(" networks found");
+		for (int i = 0; i < n; ++i)
+		{
+			ConnectionStatus::AddAccessPointInfo(AccessPointInfo{ String(WiFi.ESP8266WiFiScanClass::SSID(i).c_str()), WiFi.ESP8266WiFiScanClass::RSSI(i) ,WiFi.ESP8266WiFiScanClass::encryptionType(i) == ENC_TYPE_NONE });
+		}
+	}
+}
+
 WiFiManager::WiFiManager(const String &ssid, const String &password, bool isAccessPointMode)
 {
+	PopulateWiFiNetworks();
 	if (isAccessPointMode)
 	{
 		WiFi.mode(WIFI_AP);
 		WiFi.disconnect();
 		delay(100);
 
-		int n = WiFi.scanNetworks();
-		Serial.println("scan done");
-		if (n == 0)
-			Serial.println("no networks found");
-		else
-		{
-			Serial.print(n);
-			Serial.println(" networks found");
-			for (int i = 0; i < n; ++i)
-			{
-				ConnectionStatus::AddAccessPointInfo(AccessPointInfo{ String(WiFi.SSID(i).c_str()), WiFi.RSSI(i) ,WiFi.encryptionType(i) == ENC_TYPE_NONE });
-			}
-		}
-		Serial.println("Setting access point mode to ap name: ");
+		Serial.print("Setting access point mode to ap name: ");
 		Serial.print(ssid.c_str());
 		Serial.print("  ap password: ");
 		Serial.println(password.c_str());
@@ -93,17 +98,37 @@ void WiFiManager::Loop()
 	UpdateStatus();
 }
 
-void WiFiManager::UpdateStatus()
+void WiFiManager::HandleAccessPointModeStatus()
 {
-	if (_accessPointMode && !_accessPointModeHasBeenInit) //first time init access point mode
+	if (!_accessPointModeHasBeenInit) //first time init access point mode
 	{
 		_accessPointModeHasBeenInit = true;
 		NotifyAll(ConnectionStatus(WiFi.status(), WiFi.localIP(), true, false, true));
+		_lastConnectionStatus = 1;
 		return;
 	}
 
+	auto currentStatus = WiFi.softAPgetStationNum(); //the number of connected client
+	if (_lastConnectionStatus == currentStatus) //no change
+		return;
+
+	bool justConnected = _lastConnectionStatus == 0 &&  currentStatus > 0; //more than zero
+	bool justDissconnected = _lastConnectionStatus > 0 && currentStatus == 0; //zero
+
+	_lastConnectionStatus = currentStatus;
+	NotifyAll(ConnectionStatus(WiFi.status(), WiFi.localIP(), justConnected, justDissconnected, true));
+}
+
+void WiFiManager::UpdateStatus()
+{
+	if (_accessPointMode)
+	{
+		HandleAccessPointModeStatus();
+		return;
+	}//else
+		
 	auto currentStatus = WiFi.status();
-	if (_lastConnectionStatus == currentStatus) //no change, update every 20 seconds
+	if (_lastConnectionStatus == currentStatus) //no change
 		return;
 
 	bool justConnected = _lastConnectionStatus != WL_CONNECTED &&  currentStatus == WL_CONNECTED;
@@ -113,7 +138,3 @@ void WiFiManager::UpdateStatus()
 	NotifyAll(ConnectionStatus(WiFi.status(), WiFi.localIP(), justConnected, justDissconnected));
 }
 
-ConnectionStatus WiFiManager::GetStatus() const
-{
-	return ConnectionStatus(WiFi.status(), WiFi.localIP());
-}

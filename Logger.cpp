@@ -21,16 +21,23 @@ void Logger::WriteErrorMessage(const String& message, int blinks) const
 
 void Logger::OnWiFiStatusChanged(const ConnectionStatus& status) const
 {
-	Serial.println(status.Message().c_str());
-
 	if (status.IsAccessModeOn())
 	{
-		_ledsLogger->BlinkGreen(1000000, 150);
-		_ledsLogger->BlinkRed(1000000, 150);
+		if (status.IsJustConnected())
+		{
+			_ledsLogger->SetRed(1);
+			_ledsLogger->SetGreen(1);
+		}
+		else
+		{
+			_ledsLogger->BlinkGreen(1000000, 150);
+			_ledsLogger->BlinkRed(1000000, 150);
+		}
 		return;
 	}
 	if (status.IsJustConnected())
 	{
+		Serial.println(status.Message().c_str());
 		Serial.print("IP address: ");
 		Serial.println(status.LocalIP());
 	}

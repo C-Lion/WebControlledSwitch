@@ -17,6 +17,7 @@ class LedsLogger : public Singleton<LedsLogger>, public IProcessor
 	 private:
 		 const int _ledPin;
 		 int _ledValue = 0;
+		 int _lastSetVLedValue = 0;
 		 int _times = 0;
 		 int _blinkDelay = 0;
 		 unsigned long _startTime = 0;

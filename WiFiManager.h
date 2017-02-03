@@ -79,16 +79,18 @@ private:
 	int _lastConnectionStatus;
 	bool _accessPointMode = false;
 	bool _accessPointModeHasBeenInit = false;
+	bool _initiated = false;
 
 	void UpdateStatus();
 	void NotifyAll(ConnectionStatus status) const;
+	static void PopulateWiFiNetworks();
 	WiFiManager(const String &ssid, const String &password, bool isAccesspointMode);
 
  public:
 	void RegisterClient(wifiNotificarionFunc_t notification);
 	bool IsConnected() const;
 	void Loop() override;
-	ConnectionStatus GetStatus() const;
+	void HandleAccessPointModeStatus();
 };
 
 typedef std::shared_ptr<WiFiManager> WiFiManagerPtr_t;

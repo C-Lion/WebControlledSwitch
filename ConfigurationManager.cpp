@@ -17,7 +17,7 @@ ConfigurationManager::ConfigurationManager()
 		Util::String2Array(password, _eepromInformationBlock.AccessPointPassword);
 		_eepromInformationBlock.bUseAzureIoTHub = false; //use WebServer mode in Access Point mode
 		_eepromInformationBlock.AzureIoTHubConnectionString[0] = 0;
-		_eepromInformationBlock.IoTHubDeviceId[0] = 0;
+		_eepromInformationBlock.IoTHubDeviceId[0] = WiFi.;
 		_eepromInformationBlock.milliSecondsButonLongTimePeriod = defaultButtonLongTimePeriod;
 		_eepromInformationBlock.milliSecondsButonVeryLongTimePeriod= defaultButtonVeryLongTimePeriod;
 		_eepromInformationBlock.milliSecondsPulseActivationTimePeriod = defaultPulseActivationTimePeriod;
@@ -27,7 +27,6 @@ ConfigurationManager::ConfigurationManager()
 		_eepromInformationBlock.bPulseRelay = false;
 #endif
 	}
-	DumpEEPromInfo();
 }
 
 void ConfigurationManager::FacrotyReset()
@@ -65,22 +64,24 @@ void ConfigurationManager::ClearMagicNumber() //used to reset password
 void ConfigurationManager::ReadEEPROMInfo()
 {
 	for (int i = 0; i < sizeof(_eepromInformationBlock); ++i)
-		*(reinterpret_cast<char *>(&_eepromInformationBlock) + i) = EEPROM.read(i);
+	{
+		char c = EEPROM.read(i);
+		*(reinterpret_cast<char *>(&_eepromInformationBlock) + i) = c;
+	}
 }
 
 void ConfigurationManager::FlashEEPROMInfo()
 {
+	DumpEEPromInfo();
 	WriteMagicNumber();
 	for (int i = sizeof(_eepromInformationBlock._magicNumber); i < sizeof(_eepromInformationBlock); ++i)
 		EEPROM.write(i, *(reinterpret_cast<char *>(&_eepromInformationBlock) + i));
 	EEPROM.commit();
-	DumpEEPromInfo();
 }
 
 void ConfigurationManager::DumpEEPromInfo()
 {
 	Serial.printf("EEProm Configuration Block:\n");
-	Serial.printf("Magic: %s\n", _eepromInformationBlock._magicNumber);
 	Serial.printf("SSIDName: %s\n", _eepromInformationBlock.SSIDName);
 	Serial.printf("AccessPointPassword: %s\n", _eepromInformationBlock.AccessPointPassword);
 	Serial.printf("AzureIoTHubConnectionString: %s\n", _eepromInformationBlock.AzureIoTHubConnectionString);
@@ -111,6 +112,7 @@ void ConfigurationManager::SetWiFiCredentials(const String& SSID, const String& 
 
 void ConfigurationManager::SetAzureIoTHubInformation(const String& azureIoTConnectionString, const String& iotHubDeviceId)
 {
+	Serial.println("SetAzureIoTHubInformation");
 	_eepromInformationBlock.bUseAzureIoTHub = true;
 	Util::String2Array(azureIoTConnectionString, _eepromInformationBlock.AzureIoTHubConnectionString);
 	Util::String2Array(iotHubDeviceId, _eepromInformationBlock.IoTHubDeviceId);

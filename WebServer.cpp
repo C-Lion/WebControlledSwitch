@@ -15,7 +15,7 @@ WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey,
 {
 	_server.on("/", [this]() { HandleError(); });
 	_server.on((_authorizedUrl + "/setup").c_str(), [this]() { HandleSetup(); });
-	_server.on((_authorizedUrl + "/setaccesspoint").c_str(),HTTP_POST, [this]() { HandleSetAccessPoint(); });
+	_server.on((_authorizedUrl + "/setconfiguration").c_str(),HTTP_POST, [this]() { HandleSetConfiguration(); });
 	_server.on((_authorizedUrl + "/resetaccesspoint").c_str(), [this]() { HandleResetAccessPoint(); });
 	_server.on(_authorizedUrl.c_str(), [this]() { HandleMain(); });
 	_server.on((_authorizedUrl + "/").c_str(), [this]() { HandleMain(); });
@@ -54,7 +54,7 @@ void WebServer::HandleMain()
 	{
 		html += String(R"(<p><a href=")") + CreateUrl(webCommand->TriggerUrl()) + String(R"(">)") + webCommand->MenuEntry() + String("</a></p>");
 	}
-	html += String(R"(<br/><br/><p><a href=")") + CreateUrl("resetaccesspoint") + String(R"(">Reset stored access point name and password</a></p>)");
+	html += String(R"(<br/><p><a href=")") + CreateUrl("resetaccesspoint") + String(R"(">Factory Reset!</a></p>)");
 	SendBackHtml(html);
 }
 
@@ -131,7 +131,6 @@ void WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const 
 
 		if (beginVariable < 0 || endVariable < 0) //no more variables
 		{
-			//Serial.printf("No more variables");
 			auto rest = htmlTemplate.substring(index); //add the template end
 			memcpy(_setupHtmlBuffer + bufferIndex, rest.c_str(), rest.length() + 1); //copy the template tail
 			bufferIndex += rest.length() + 1;
@@ -145,10 +144,7 @@ void WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const 
 			continue;
 		}
 		auto variableName = htmlTemplate.substring(beginVariable + 2, endVariable);
-		Serial.printf("Found variable name: %s\n", variableName.c_str());
 		String replacedValue = map.at(variableName); //extract only the variable name and replace it
-		Serial.printf("Replaced with: %s\n", replacedValue.c_str());
-		Serial.printf("index: %d   begin: %d end: %d, found: %s\n***\n\n", index, beginVariable, endVariable, variableName.c_str());
 		String htmlUntilVariable = htmlTemplate.substring(index, beginVariable - 1);
 
 		//Add all text before the variable and the replacement
@@ -157,12 +153,11 @@ void WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const 
 		memcpy(_setupHtmlBuffer + bufferIndex, replacedValue.c_str(), replacedValue.length());
 		bufferIndex += replacedValue.length();
 		_setupHtmlBuffer[bufferIndex] = 0;
-		//Serial.printf("So far %s\n", String(resultBuffer).c_str());
 		index = endVariable + 2;
 	} while (index != end);
 }
 
-void WebServer::HandleSetAccessPoint()
+void WebServer::HandleSetConfiguration()
 {
 	_deviceSettings->ssidName = _server.arg("ap").c_str();
 	_deviceSettings->accessPointPassword = _server.arg("WiFiPassword").c_str();
@@ -172,7 +167,12 @@ void WebServer::HandleSetAccessPoint()
 	_deviceSettings->veryLongButtonPeriod = atoi(_server.arg("PBVeryLongPress").c_str());
 	_deviceSettings->PulseActivationPeriod = atoi(_server.arg("PBPulseActivationPeriod").c_str());
 	_deviceSettings->shouldUseAzureIoT = _server.arg("WebServerOrAzureIoTHub") == "AzureIoTHub";
-	_deviceSettings->PBBehavior = _server.arg("PBBehaviour") == "PBBehaviourPulse" ? PushButtonBehaviour::Pulse : PushButtonBehaviour::Toggle; 
+	_deviceSettings->PBBehavior = _server.arg("PBBehaviour") == "PBBehaviourToggle" ? PushButtonBehaviour::Toggle : PushButtonBehaviour::Pulse; 
+	printf("Server arguments:\n");
+	for (int i = 0; i < _server.args(); ++i)
+	{
+		Serial.printf("%s=%s\n", _server.argName(i).c_str(), _server.arg(_server.argName(i)).c_str());
+	}
 
 	String html =
 		R"(<p><center><h3>The device will reboot and try to connect to:</h3></center></p><p>)";

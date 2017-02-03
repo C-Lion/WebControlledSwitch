@@ -36,8 +36,6 @@ private:
 	void ClearMagicNumber();
 	void ReadEEPROMInfo();
 	void FlashEEPROMInfo();
-
-	void DumpEEPromInfo();
 	ConfigurationManager();
 
  public:
@@ -58,7 +56,7 @@ private:
 	void FacrotyReset();
 	void FlashEEProm();
 	bool IsAccessPointMode() const { return !CheckMagicNumber(); }
-	
+	void DumpEEPromInfo();
 };
 
 typedef std::shared_ptr<ConfigurationManager> ConfigurationManager_t;

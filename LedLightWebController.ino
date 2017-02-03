@@ -144,6 +144,7 @@ void SetupWebServer()
 		configurationManger->SetWiFiCredentials(deviceSettings.ssidName, deviceSettings.accessPointPassword);
 		if (deviceSettings.shouldUseAzureIoT)
 		{
+			Serial.println("deviceSettings.shouldUseAzureIoT");
 			configurationManger->SetAzureIoTHubInformation(deviceSettings.azureIoTHubConnectionString, deviceSettings.AzureIoTDeviceId);
 		}
 		else
@@ -151,14 +152,20 @@ void SetupWebServer()
 			configurationManger->SetWebServerMode();
 		}
 		configurationManger->SetButonPressTimesMilliSeconds(deviceSettings.longButtonPeriod, deviceSettings.veryLongButtonPeriod, deviceSettings.PulseActivationPeriod);
+		configurationManger->SetRelayMode(deviceSettings.PBBehavior == PushButtonBehaviour::Pulse ? RelayMode::Pulse : RelayMode::OnOFF);
 		configurationManger->FlashEEProm();
-		
 	});
 
 	SubscribeRemoteCommands(webServer);
-	make_shared<WebCommand>(pulseMenuEntry, "Activate", webServer)->Register();
-	make_shared<WebCommand>(turnOnMenuEntry, "On", webServer)->Register();
-	make_shared<WebCommand>(turnOffMenuEntry, "Off", webServer)->Register();
+	if (configurationManger->GetRelayMode() == RelayMode::Pulse)
+	{
+		make_shared<WebCommand>(pulseMenuEntry, "Activate", webServer)->Register();
+	}
+	else
+	{
+		make_shared<WebCommand>(turnOnMenuEntry, "On", webServer)->Register();
+		make_shared<WebCommand>(turnOffMenuEntry, "Off", webServer)->Register();
+	}
 }
 
 
@@ -232,7 +239,8 @@ void setup()
 		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{logger, wifiManager, pushButtonManager, relayManager, webServer });
 	}
 	logger->TestLeds();
-	}
+	configurationManger->DumpEEPromInfo();
+}
 
 
 

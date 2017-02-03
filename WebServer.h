@@ -79,7 +79,7 @@ private:
 	void HandleMain();
 	void HandleSetup();
 	
-	void HandleSetAccessPoint();
+	void HandleSetConfiguration();
 	void HandleResetAccessPoint();
 	void HandleError();
 	void HandleCommand(WebCommandPtr_t webCommand);
