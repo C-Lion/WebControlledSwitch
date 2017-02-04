@@ -180,7 +180,7 @@ void WebServer::HandleSetConfiguration()
 		html += "</p><br/>";
 		html += "If after the reboot the two Leds are blinking or the green led is not turned on, do a factory reset by pressing the button for more than ";
 		html += String(_deviceSettings->veryLongButtonPeriod / 1000).c_str();
-		html += " seconds. The two leds should blinks very fast.";
+		html += " seconds. The two leds should blink very fast.";
 
 		SendBackHtml(html.c_str());
 		_configurationUpdater(*_deviceSettings.get());
