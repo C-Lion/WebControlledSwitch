@@ -11,12 +11,25 @@ AzureIoTHubManager::AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t
 	wifiManager->RegisterClient([this](ConnectionStatus status) { UpdateStatus(status); });
 }
 
-void AzureIoTHubManager::HandleCommand(const String & commandName, int commandId, const char *logInfo) const
+void AzureIoTHubManager::HandleCommand(const String & commandName) const
 {
 	_logger->WriteMessage("Received command: ");
 	_logger->WriteMessage(commandName);
-	_logger->WriteMessage("From Azure IoTHub with log information: ");
-	_logger->WriteMessage(logInfo);
+	int commandId = 0;
+
+	if (commandName == "Activate")
+		commandId = 1;
+	else if (commandName == "On")
+		commandId = 1;
+	else if (commandName == "Off")
+		commandId = 2;
+
+	if (commandId == 0)
+	{
+		_logger->WriteMessage("Invalid command, commands are case sensitive. [On, Off, Activate]");
+		return;
+	}
+
 	_pubsub.NotifyAll(commandName, commandId);
 }
 

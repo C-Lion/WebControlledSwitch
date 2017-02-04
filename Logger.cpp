@@ -16,7 +16,7 @@ void Logger::OnCommand(const String &commandName, int commandId) const
 void Logger::WriteErrorMessage(const String& message, int blinks) const
 {
 	Serial.println(message.c_str());
-	_ledsLogger->BlinkRed(blinks, 300);
+	_ledsLogger->BlinkRed(blinks, 500);
 }
 
 void Logger::OnWiFiStatusChanged(const ConnectionStatus& status) const
