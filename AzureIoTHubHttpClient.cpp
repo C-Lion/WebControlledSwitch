@@ -50,17 +50,19 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT IoTHubMessage(IOTHUB_MESSAGE_HANDLE mess
 		LogInfo("unable to IoTHubMessage_GetByteArray\r\n");
 		return IOTHUBMESSAGE_REJECTED;
 	}// else
-	char *commandBuffer = (char *)malloc(size + 1);
-	memset(commandBuffer, 0, size + 1);
-	memcpy(commandBuffer, buffer, size + 1);
-	String command((char *)commandBuffer);
+	char commandBuffer[16]; //command should be less then 15 characters
+	
+	if (size > sizeof(commandBuffer) - 1) //copy up to 15 chars
+		size = sizeof(commandBuffer) - 1;
+	
+	memcpy(commandBuffer, buffer, size); 
+	commandBuffer[size] = 0;
+	String command(commandBuffer);
 	
 	Serial.printf("Message arrived, command:%s\n", command.c_str());
 	AzureIoTHubManager::Instance()->HandleCommand(command);
 			
-	free(commandBuffer);
 	return IOTHUBMESSAGE_ACCEPTED;
-	
 }
 
 IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
