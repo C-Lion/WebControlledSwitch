@@ -20,6 +20,15 @@ const unsigned int defaultButtonLongTimePeriod = 5000; //5 seconds -> reset
 const unsigned int defaultButtonVeryLongTimePeriod = 20000; //20 seconds -> factory reset
 const unsigned int defaultPulseActivationTimePeriod = 2000; 
 
+//Board configuration
+const int pushButton = 5; //D1
+const int redLed = 4; //D2
+const int greenLed = 15; //D8
+const int relay = 2; //D4
+const int ButtonPressed = HIGH;
+const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
+
+
 //uncomment this line to change the default behavior of the controller to act as a switch (pulse) instead of an On/Off button
 //for example, in case you need to control a garage gate that use the same signal 
 //(activate to open the door and activate again to close it)

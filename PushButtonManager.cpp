@@ -3,6 +3,7 @@
 // 
 
 #include "PushButtonManager.h"
+#include "Configuration.h"
 
 PushButtonManager::PushButtonManager(int pin, IPushButtonActionsPtr_t pushButtonActions)
 	: _pin(pin), _pushButtonActions(pushButtonActions)
@@ -13,13 +14,13 @@ PushButtonManager::PushButtonManager(int pin, IPushButtonActionsPtr_t pushButton
 void PushButtonManager::Loop()
 {
 	auto currentState = digitalRead(_pin);
-	if (currentState == HIGH && _previousButtonState == LOW) //Trigger
+	if (currentState == ButtonPressed && _previousButtonState == ButtonReleased) //Trigger
 	{
 		_pressStartTime = millis();
 	}
 
 	//handle detection callbacks
-	if (currentState == HIGH && _previousButtonState == HIGH) //continue press
+	if (currentState == ButtonPressed && _previousButtonState == ButtonPressed) //continue press
 	{
 		auto length = millis() - _pressStartTime;
 		if (!_bLongDetection && _pushButtonActions->GetLongPressPeriod() < length && length < _pushButtonActions->GetVeryLongPressPeriod())
@@ -35,7 +36,7 @@ void PushButtonManager::Loop()
 	}
 
 	//Handle button press
-	if (currentState == LOW && _previousButtonState == HIGH && _pressStartTime != 0 && millis() - _pressStartTime > 100) //long enough
+	if (currentState == ButtonReleased && _previousButtonState == ButtonPressed && _pressStartTime != 0 && millis() - _pressStartTime > 100) //long enough
 	{
 		auto length = millis() - _pressStartTime;
 		if (length < _pushButtonActions->GetLongPressPeriod()) //less then 5 seconds, regular press

@@ -34,11 +34,7 @@
 
 using namespace std;
 
-//Board configuration
-int pushButton = 5; //D1
-int redLed = 4; //D2
-int greenLed = 15; //D8
-int relay = 2; //D4
+
 
 
 void SwitchRelayState(int state);
