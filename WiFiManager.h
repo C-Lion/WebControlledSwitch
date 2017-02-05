@@ -42,8 +42,8 @@ private:
 	const int _status;
 	const IPAddress _localIP;
 	bool _justConnected;
-	bool _justDissconnected;
-	bool _isAccessMode;
+	bool _justDisconnected;
+	bool _isAccessPointMode;
 
 	static std::map<int, WiFiStatus> _statusMap;
 	static std::array<String, 8> _messageMap;
@@ -53,7 +53,7 @@ private:
 	template<typename T>
 	static void AddAccessPointInfo(T &&apInfo) { _accessPointList.push_back(std::forward<T>(apInfo)); }
 
-	ConnectionStatus(int status, IPAddress localIP, bool justConnected = false, bool justDissconnected = false, bool isAccessMode = false) : _status(status), _localIP(localIP), _justConnected(justConnected), _justDissconnected(justDissconnected), _isAccessMode(isAccessMode)
+	ConnectionStatus(int status, IPAddress localIP, bool justConnected = false, bool justDisconnected = false, bool isAccessPointMode = false) : _status(status), _localIP(localIP), _justConnected(justConnected), _justDisconnected(justDisconnected), _isAccessPointMode(isAccessPointMode)
 	{}
 
 public:
@@ -62,9 +62,9 @@ public:
 	const String &Message() const {return _messageMap[_status];}
 	IPAddress LocalIP() const { return _localIP; }
 	bool IsJustConnected() const { return _justConnected; }
-	bool IsJustDissconnected() const { return _justDissconnected; }
+	bool IsJustDissconnected() const { return _justDisconnected; }
 	bool IsConnected() const { return _status == WL_CONNECTED; }
-	bool IsAccessModeOn() const { return _isAccessMode; }
+	bool IsAccessPointModeOn() const { return _isAccessPointMode; }
 	static const std::list<AccessPointInfo> &GetAccessPoints() { return _accessPointList; }
 };
 

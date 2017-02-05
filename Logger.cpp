@@ -21,7 +21,7 @@ void Logger::WriteErrorMessage(const String& message, int blinks) const
 
 void Logger::OnWiFiStatusChanged(const ConnectionStatus& status) const
 {
-	if (status.IsAccessModeOn())
+	if (status.IsAccessPointModeOn())
 	{
 		if (status.IsJustConnected())
 		{
