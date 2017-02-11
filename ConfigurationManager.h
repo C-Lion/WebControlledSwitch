@@ -19,6 +19,7 @@ private:
 	struct
 	{
 		unsigned char _magicNumber[6];
+		unsigned char pad[2]; //allignment
 		char SSIDName[32];
 		char AccessPointPassword[64];
 		char AzureIoTHubConnectionString[256];

@@ -64,10 +64,17 @@ private:
 	bool _isInit = false;
 	std::function<bool()> _relayStateUpdater;
 	std::function<void(const DeviceSettings&)> _configurationUpdater;
+	//setup template processing variables
+	int _templateIndex = 0;
+	int _templateBufferIndex = 0;
+	int _templateEnd = -1;
+	std::map<String, String> _templateValuesMap;
+	bool _isHttpSetupRequestOn = false;
+
 	void SendBackHtml(const String &message);
 	void UpdateStatus(ConnectionStatus status);
 	String CreateUrl(const String &s) const;
-	void PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map);
+	bool PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map);
 	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater);
 
  public:
@@ -77,6 +84,7 @@ private:
 	template<typename T>
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	void HandleMain();
+	void ProcessHTTPSetupRequest();
 	void HandleSetup();
 	
 	void HandleSetConfiguration();

@@ -58,6 +58,16 @@ void WebServer::HandleMain()
 	SendBackHtml(html);
 }
 
+void WebServer::ProcessHTTPSetupRequest()
+{
+	bool result = PopulateHTMLSetupFromTemplate(WebSettingHtmlTemplate, _templateValuesMap);
+	if (result) //finished
+	{
+		_isHttpSetupRequestOn = false;
+		_server.send(200, "text/html", _setupHtmlBuffer);
+	}
+}
+
 
 void WebServer::HandleSetup()
 {
@@ -79,82 +89,90 @@ void WebServer::HandleSetup()
 		html += R"("></li>)";
 	}
 	//Serial.printf(html.c_str());
-	std::map<String, String> templateValuesMap =
-	{
-		{"AccessPointList" , html},
-		{"WiFiPassword", _deviceSettings->accessPointPassword},
-		{"DeviceId", _deviceSettings->AzureIoTDeviceId},
-		{"IoTHubConnectionString", _deviceSettings->azureIoTHubConnectionString},
-		{"PBLongPress", String(_deviceSettings->longButtonPeriod).c_str()},
-		{"PBVeryLongPress", String(_deviceSettings->veryLongButtonPeriod).c_str()},
-		{"PBPulseActivationPeriod", String(_deviceSettings->PulseActivationPeriod).c_str()}
-	};
+	_templateValuesMap.clear();
+	_templateValuesMap["AccessPointList"] = html;
+	_templateValuesMap["WiFiPassword"] = _deviceSettings->accessPointPassword;
+	_templateValuesMap["DeviceId"] = _deviceSettings->AzureIoTDeviceId;
+	_templateValuesMap["IoTHubConnectionString"] = _deviceSettings->azureIoTHubConnectionString;;
+	_templateValuesMap["PBLongPress"] = String(_deviceSettings->longButtonPeriod).c_str();
+	_templateValuesMap["PBVeryLongPress"] = String(_deviceSettings->veryLongButtonPeriod).c_str();
+	_templateValuesMap["PBPulseActivationPeriod"] = String(_deviceSettings->PulseActivationPeriod).c_str();
 
 	const String checked = R"(checked="checked")";
 	if (_deviceSettings->shouldUseAzureIoT)
 	{
-		templateValuesMap.insert(pair<String, String>{ "AzureIoTHub", checked});
-		templateValuesMap.insert(pair<String, String>{ "WebServer", ""});
+		_templateValuesMap["AzureIoTHub"] = checked;
+		_templateValuesMap["WebServer"] = "";
 	}
 	else
 	{
-		templateValuesMap.insert(pair<String, String>{ "WebServer", checked});
-		templateValuesMap.insert(pair<String, String>{ "AzureIoTHub", ""});
+		_templateValuesMap["WebServer"] = checked;
+		_templateValuesMap["AzureIoTHub"] = "";
 	}
 
 	if (_deviceSettings->PBBehavior == PushButtonBehaviour::Toggle)
 	{
-		templateValuesMap.insert(pair<String, String>{ "PBBehaviourToggle", checked});
-		templateValuesMap.insert(pair<String, String>{ "PBBehaviourPulse", ""});
+		_templateValuesMap["PBBehaviourToggle"] = checked;
+		_templateValuesMap["PBBehaviourPulse"] = "";
 	}
 	else
 	{
-		templateValuesMap.insert(pair<String, String>{ "PBBehaviourPulse", checked});
-		templateValuesMap.insert(pair<String, String>{ "PBBehaviourToggle", ""});
+		_templateValuesMap["PBBehaviourPulse"] = checked;
+		_templateValuesMap["PBBehaviourToggle"] = "";
 	}
 
-	PopulateHTMLSetupFromTemplate(WebSettingHtmlTemplate, templateValuesMap);
-	_server.send(200, "text/html", _setupHtmlBuffer);
+	_isHttpSetupRequestOn = true; //start request processing
+	ProcessHTTPSetupRequest();
 }
 
-void WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map) 
+//extern void pp_soft_wdt_stop();
+//extern void pp_soft_wdt_restart();
+
+bool WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map) 
 {
-	int index = 0;
-	int bufferIndex = 0;
-	int end = -1;
+	int startTime = millis();
 	do
 	{
-		int beginVariable = htmlTemplate.indexOf('%', index); //search <%= by searching %
+		if (millis() - startTime > 50) //0.25 seconds
+			return false;
+		Serial.printf("Continue setup template processing, index: %d\n", _templateIndex);
+		int beginVariable = htmlTemplate.indexOf('%', _templateIndex); //search <%= by searching %
 		int endVariable = -1;
 		if (beginVariable >= 0) //only if beginVariable didn't reach the end of html
 			endVariable = htmlTemplate.indexOf('%', beginVariable + 1);
 
 		if (beginVariable < 0 || endVariable < 0) //no more variables
 		{
-			auto rest = htmlTemplate.substring(index); //add the template end
-			memcpy(_setupHtmlBuffer + bufferIndex, rest.c_str(), rest.length() + 1); //copy the template tail
-			bufferIndex += rest.length() + 1;
+			auto rest = htmlTemplate.substring(_templateIndex); //add the template end
+			memcpy(_setupHtmlBuffer + _templateBufferIndex, rest.c_str(), rest.length() + 1); //copy the template tail
+			_templateBufferIndex += rest.length() + 1;
 			break;
 		}
 
 		if (htmlTemplate[beginVariable - 1] != '<' || htmlTemplate[beginVariable + 1] != '=' || htmlTemplate[endVariable + 1] != '>') //not <%= ... %>
 		{
-			_setupHtmlBuffer[bufferIndex++] = htmlTemplate[index];
-			++index;
+			_setupHtmlBuffer[_templateBufferIndex++] = htmlTemplate[_templateIndex];
+			++_templateIndex;
 			continue;
 		}
 		auto variableName = htmlTemplate.substring(beginVariable + 2, endVariable);
 		String replacedValue = map.at(variableName); //extract only the variable name and replace it
-		String htmlUntilVariable = htmlTemplate.substring(index, beginVariable - 1);
+		String htmlUntilVariable = htmlTemplate.substring(_templateIndex, beginVariable - 1);
 
 		//Add all text before the variable and the replacement
-		memcpy(_setupHtmlBuffer + bufferIndex, htmlUntilVariable.c_str(), htmlUntilVariable.length());
-		bufferIndex += htmlUntilVariable.length();
-		memcpy(_setupHtmlBuffer + bufferIndex, replacedValue.c_str(), replacedValue.length());
-		bufferIndex += replacedValue.length();
-		_setupHtmlBuffer[bufferIndex] = 0;
-		index = endVariable + 2;
-	} while (index != end);
+		memcpy(_setupHtmlBuffer + _templateBufferIndex, htmlUntilVariable.c_str(), htmlUntilVariable.length());
+		_templateBufferIndex += htmlUntilVariable.length();
+		memcpy(_setupHtmlBuffer + _templateBufferIndex, replacedValue.c_str(), replacedValue.length());
+		_templateBufferIndex += replacedValue.length();
+		_setupHtmlBuffer[_templateBufferIndex] = 0;
+		_templateIndex = endVariable + 2;
+	} while (_templateIndex != _templateEnd);
+
+	//reset for nect time
+	_templateIndex = 0;
+	_templateBufferIndex = 0;
+	_templateEnd = -1;
+	return true;
 }
 
 void WebServer::HandleSetConfiguration()
@@ -216,7 +234,10 @@ void WebServer::Loop()
 	if (_relayStateUpdater)
 		_relayState = _relayStateUpdater();
 
-	_server.handleClient();
+	if (_isHttpSetupRequestOn)
+		ProcessHTTPSetupRequest();
+	//else
+		_server.handleClient();
 }
 
 void WebServer::SetUpdateConfiguration(std::function<void(const DeviceSettings&)> configurationUpdater)

@@ -28,7 +28,7 @@ void Logger::OnWiFiStatusChanged(const ConnectionStatus& status) const
 			_ledsLogger->SetRed(1);
 			_ledsLogger->SetGreen(1);
 		}
-		else
+		if (status.IsJustDissconnected())
 		{
 			_ledsLogger->BlinkGreen(1000000, 150);
 			_ledsLogger->BlinkRed(1000000, 150);
