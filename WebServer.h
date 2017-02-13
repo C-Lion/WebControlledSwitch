@@ -14,6 +14,7 @@
 #include "Singleton.h"
 #include "PubSub.h"
 #include "ArduinoLoopManager.h"
+#include "Util.h"
 
 class IWebCommand
 {
@@ -68,13 +69,13 @@ private:
 	int _templateIndex = 0;
 	int _templateBufferIndex = 0;
 	int _templateEnd = -1;
-	std::map<String, String> _templateValuesMap;
+	Util::StringMap _templateValuesMap;
 	bool _isHttpSetupRequestOn = false;
 
 	void SendBackHtml(const String &message);
 	void UpdateStatus(ConnectionStatus status);
 	String CreateUrl(const String &s) const;
-	bool PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const std::map<String, String>& map);
+	bool PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const Util::StringMap &map);
 	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater);
 
  public:

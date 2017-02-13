@@ -20,7 +20,7 @@ const unsigned int defaultButtonLongTimePeriod = 5000; //5 seconds -> reset
 const unsigned int defaultButtonVeryLongTimePeriod = 20000; //20 seconds -> factory reset
 const unsigned int defaultPulseActivationTimePeriod = 2000; 
 
-//Board configuration
+//NodeMCU Board configuration
 //const int pushButton = 5; //D1
 //const int redLed = 4; //D2
 //const int greenLed = 15; //D8
@@ -28,14 +28,22 @@ const unsigned int defaultPulseActivationTimePeriod = 2000;
 //const int ButtonPressed = HIGH;
 //const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
 
-//Wifi Witty ESP-12F Board - https://blog.the-jedi.co.uk/2016/01/02/wifi-witty-esp12f-board/
-const int LDR = A0;
-const int pushButton = 4;
-const int redLed = 15;
-const int greenLed = 12;
-const int relay = 13; //BLUE led
-const int ButtonPressed = LOW;
+//WeMos D1 Mini Board configuration
+const int pushButton = 13; //D7
+const int redLed = 4; //D2
+const int greenLed = 2; //D4
+const int relay = 5; //D1
+const int ButtonPressed = HIGH;
 const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
+
+//Wifi Witty ESP-12F Board - https://blog.the-jedi.co.uk/2016/01/02/wifi-witty-esp12f-board/
+//const int LDR = A0;
+//const int pushButton = 4;
+//const int redLed = 15;
+//const int greenLed = 12;
+//const int relay = 13; //BLUE led
+//const int ButtonPressed = LOW;
+//const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
 
 
 //uncomment this line to change the default behavior of the controller to act as a switch (pulse) instead of an On/Off button
