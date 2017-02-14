@@ -127,12 +127,12 @@ void WebServer::HandleSetup()
 //extern void pp_soft_wdt_stop();
 //extern void pp_soft_wdt_restart();
 
-bool WebServer::PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const Util::StringMap & map) 
+bool WebServer::PopulateHTMLSetupFromTemplate(const String &htmlTemplate, const Util::StringMap & map) 
 {
 	int startTime = millis();
 	do
 	{
-		if (millis() - startTime > 10) //0.05 seconds
+		if (millis() - startTime > 250) //0.25 seconds
 			return false;
 		Serial.printf("Continue setup template processing, index: %d\n", _templateIndex);
 		int beginVariable = htmlTemplate.indexOf('%', _templateIndex); //search <%= by searching %
