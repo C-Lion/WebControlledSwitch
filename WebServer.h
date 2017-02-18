@@ -54,7 +54,7 @@ class WebServer : public Singleton<WebServer>, public IProcessor
 {
 	friend class Singleton<WebServer>;
 private:
-	char _setupHtmlBuffer[3072]; //for setup html result
+	char _setupHtmlBuffer[3300]; //for setup html result
 	std::unique_ptr<DeviceSettings> _deviceSettings;
 	ESP8266WebServer _server;
 	PubSub<WebServer, const String&, int> _pubsub;
@@ -78,20 +78,21 @@ private:
 	bool PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const Util::StringMap &map);
 	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater);
 
- public:
-	
-	void RegisterCommand(WebCommandPtr_t command);
-
-	template<typename T>
-	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	void HandleMain();
 	void ProcessHTTPSetupRequest();
+	void HandleSendAPScript();
 	void HandleSetup();
-	
+	void HandleSendViewCSS();
+	void HandleSendAPList();
 	void HandleSetConfiguration();
 	void HandleResetAccessPoint();
 	void HandleError();
 	void HandleCommand(WebCommandPtr_t webCommand);
+
+ public:
+	void RegisterCommand(WebCommandPtr_t command);
+	template<typename T>
+	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	void Register(WebNotificationPtr_t subscriber) { _pubsub.Register(subscriber); }
 	bool IsConnected() const;
 	void Loop();

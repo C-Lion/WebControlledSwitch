@@ -13,6 +13,9 @@ WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey,
 	_relayStateUpdater(relayStateUpdater)
 {
 	_server.on("/", [this]() { HandleError(); });
+	_server.on((_authorizedUrl + "/view.css").c_str(), [this]() { HandleSendViewCSS(); });
+	_server.on((_authorizedUrl + "/ap_script.js").c_str(), [this]() { HandleSendAPScript(); });
+	_server.on((_authorizedUrl + "/aplist.html").c_str(), [this]() { HandleSendAPList(); });
 	_server.on((_authorizedUrl + "/setup").c_str(), [this]() { HandleSetup(); });
 	_server.on((_authorizedUrl + "/setconfiguration").c_str(),HTTP_POST, [this]() { HandleSetConfiguration(); });
 	_server.on((_authorizedUrl + "/resetaccesspoint").c_str(), [this]() { HandleResetAccessPoint(); });
@@ -63,33 +66,18 @@ void WebServer::ProcessHTTPSetupRequest()
 	if (result) //finished
 	{
 		_isHttpSetupRequestOn = false;
-		_server.send(200, "text/html", _setupHtmlBuffer);
+		_server.send_P(200, "text/html", _setupHtmlBuffer);
 	}
 }
 
+void WebServer::HandleSendAPScript()
+{
+	_server.send_P(200, "text/javascript", APScript);
+}
 
 void WebServer::HandleSetup()
 {
-	String html;
-	auto AccessPointList = ConnectionStatus::GetAccessPoints();
-	for (auto &&ap : AccessPointList)
-	{
-		html += R"(<li><label>)";
-		html += ap.SSID.c_str();
-		html += "  Signal:";
-		html += String(ap.RSSI).c_str();
-		if (ap.isEncripted)
-			html += " *";
-		html += R"("</label> <input type = "radio" name = "ap" value = ")";
-		html += ap.SSID.c_str();
-		html += R"(" )";
-		if (ap.SSID == _deviceSettings->ssidName)
-			html += R"( checked="checked" )";
-		html += R"("></li>)";
-	}
-	//Serial.printf(html.c_str());
 	_templateValuesMap.clear();
-	_templateValuesMap["APList"] = html;
 	_templateValuesMap["WFPwd"] = _deviceSettings->accessPointPassword;
 	_templateValuesMap["DeviceId"] = _deviceSettings->AzureIoTDeviceId;
 	_templateValuesMap["IoTConStr"] = _deviceSettings->azureIoTHubConnectionString;;
@@ -124,6 +112,35 @@ void WebServer::HandleSetup()
 	ProcessHTTPSetupRequest();
 }
 
+void WebServer::HandleSendViewCSS()
+{
+	_server.send_P(200, "text/css", ViewCSS);
+}
+
+void WebServer::HandleSendAPList()
+{
+	auto AccessPointList = ConnectionStatus::GetAccessPoints();
+	String html;
+	for (auto &&ap : AccessPointList)
+	{
+
+		html += R"(<input type = "radio" class="element radio" name = "ap" value = ")";
+		html += ap.SSID.c_str();
+		html += R"(" )";
+		if (ap.SSID == _deviceSettings->ssidName)
+			html += R"( checked="checked" )";
+		html += R"("/> <label class="choice">)";
+		html += ap.SSID.c_str();
+		html += R"( <font color="purple">  Signal:)";
+		html += String(100 + ap.RSSI).c_str();
+		if (!ap.isEncripted)
+			html += " Secure";
+		html += "</font></label>";
+
+	}
+	_server.send(200, "text/html", html);
+}
+
 //extern void pp_soft_wdt_stop();
 //extern void pp_soft_wdt_restart();
 
@@ -132,7 +149,7 @@ bool WebServer::PopulateHTMLSetupFromTemplate(const String &htmlTemplate, const 
 	int startTime = millis();
 	do
 	{
-		if (millis() - startTime > 250) //0.25 seconds
+		if (millis() - startTime > 25) //0.025 seconds per parsing iteration
 			return false;
 		Serial.printf("Continue setup template processing, index: %d\n", _templateIndex);
 		int beginVariable = htmlTemplate.indexOf('%', _templateIndex); //search <%= by searching %
@@ -143,8 +160,8 @@ bool WebServer::PopulateHTMLSetupFromTemplate(const String &htmlTemplate, const 
 		if (beginVariable < 0 || endVariable < 0) //no more variables
 		{
 			auto rest = htmlTemplate.substring(_templateIndex); //add the template end
-			memcpy(_setupHtmlBuffer + _templateBufferIndex, rest.c_str(), rest.length() + 1); //copy the template tail
-			_templateBufferIndex += rest.length() + 1;
+			memcpy(_setupHtmlBuffer + _templateBufferIndex, rest.c_str(), rest.length()); //copy the template tail
+			_templateBufferIndex += rest.length();
 			break;
 		}
 
@@ -235,8 +252,8 @@ void WebServer::Loop()
 
 	if (_isHttpSetupRequestOn)
 		ProcessHTTPSetupRequest();
-	//else
-		_server.handleClient();
+	
+	_server.handleClient();
 }
 
 void WebServer::SetUpdateConfiguration(std::function<void(const DeviceSettings&)> configurationUpdater)
