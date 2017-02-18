@@ -10,6 +10,10 @@ Look at the [configuration.h]((http://prose.io/#alonf/WebControlledSwitch/edit/m
 
 Once you flash the device, you should point your computer/phone/tablet to the device Access Point SSID, and go to settings: http://192.168.4.1/appkey/setup
 
+Once you select the local Access Point and reset the device. Use a browser that is connected to the same network and browse to: http://<ip assigned to the device>/appkey 
+
+to make the communicationm with the device secured, change the appkey in the configuration file to any secret path you like.
+
 Enjoy,
 
 Alon Fliess.
