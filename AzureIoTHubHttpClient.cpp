@@ -97,7 +97,7 @@ extern "C" bool AzureIoTHubInit(const char *connectionString)
 	return true;
 }
 
-extern "C" bool AzureIoTHubSendMessage(char *deviceId, int status, int messageId)
+extern "C" bool AzureIoTHubSendMessage(char *deviceId, const char *status)
 {
 	bool result = false;
 
@@ -112,7 +112,7 @@ extern "C" bool AzureIoTHubSendMessage(char *deviceId, int status, int messageId
 	}
 	else
 	{
-		if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback, reinterpret_cast<void*>(messageId)) != IOTHUB_CLIENT_OK)
+		if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback, reinterpret_cast<void*>(1)) != IOTHUB_CLIENT_OK)
 		{
 			LogInfo("failed to hand over the message to IoTHubClient");
 		}

@@ -99,9 +99,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Users\alon\Documents\Arduino\libraries\AzureIoTUtility\src;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\libraries\ESP8266WiFi\src;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\libraries\EEPROM;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\libraries\ESP8266WebServer\src;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\libraries\ESP8266mDNS;C:\Users\alon\Documents\Arduino\libraries\AzureIoTHub\src;C:\Users\alon\Documents\Arduino\libraries\AzureIoTHub\src\utility;C:\Users\alon\Documents\Arduino\libraries\AzureIoTUtility\src\utility;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\libraries\EEPROM\utility;C:\Program Files (x86)\Arduino\libraries;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\libraries;C:\Users\alon\Documents\Arduino\libraries;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266\libb64;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266\spiffs;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\cores\esp8266\umm_malloc;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\variants\nodemcu;C:\Users\alon\Documents\Arduino\LedLightWebController;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0/tools/sdk/include;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0/tools/sdk/lwip/include;{build.path}/core;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include\c++\4.8.2\xtensa-lx106-elf;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\xtensa-lx106-elf\include;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\tools\xtensa-lx106-elf-gcc\1.20.0-26-gb404fb9-2\lib\gcc\xtensa-lx106-elf\4.8.2\include;C:\Users\alon\AppData\Local\arduino15\packages\esp8266\hardware\esp8266\2.3.0\tools\sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>$(ProjectDir)__vm\.WebControlledSwitch.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>$(ProjectDir)__vm\.LedLightWebController.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <PreprocessorDefinitions>__ESP8266_ESp8266__;__ESP8266_ESP8266__;__ets__;ICACHE_FLASH;F_CPU=80000000L;LWIP_OPEN_SRC;ARDUINO=106011;ARDUINO_ESP8266_WEMOS_D1MINI;ARDUINO_ARCH_ESP8266;ESP8266;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__ESP8266_ESp8266__;__ESP8266_ESP8266__;__ets__;ICACHE_FLASH;F_CPU=80000000L;LWIP_OPEN_SRC;ARDUINO=10609;ARDUINO_ESP8266_WEMOS_D1MINI;ARDUINO_ARCH_ESP8266;ESP8266;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -135,16 +135,12 @@
     <ClInclude Include="AzureIoTHubManager.h" />
     <ClInclude Include="LedsLogger.h" />
     <ClInclude Include="Logger.h" />
-    <ClInclude Include="MementaryPushButtonManager.h" />
-    <ClInclude Include="OnOffRelayManager.h" />
     <ClInclude Include="ConfigurationManager.h" />
     <ClInclude Include="PubSub.h" />
-    <ClInclude Include="PulseRelayManager.h" />
     <ClInclude Include="PushButtonManager.h" />
-    <ClInclude Include="RelayManager.h" />
+    <ClInclude Include="GateManager.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="Singleton.h" />
-    <ClInclude Include="TogglePushButtonManager.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="WebServer.h" />
     <ClInclude Include="WiFiManager.h" />
@@ -156,13 +152,9 @@
     <ClCompile Include="AzureIoTHubManager.cpp" />
     <ClCompile Include="LedsLogger.cpp" />
     <ClCompile Include="Logger.cpp" />
-    <ClCompile Include="MementaryPushButtonManager.cpp" />
-    <ClCompile Include="OnOffRelayManager.cpp" />
     <ClCompile Include="ConfigurationManager.cpp" />
-    <ClCompile Include="PulseRelayManager.cpp" />
     <ClCompile Include="PushButtonManager.cpp" />
-    <ClCompile Include="RelayManager.cpp" />
-    <ClCompile Include="TogglePushButtonManager.cpp" />
+    <ClCompile Include="GateManager.cpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="WebServer.cpp" />
     <ClCompile Include="WiFiManager.cpp" />

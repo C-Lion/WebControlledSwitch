@@ -12,6 +12,8 @@ private:
 	static std::weak_ptr<T> _instance;
 
 public:
+	virtual ~Singleton() = default;
+
 	template<typename... Args>
 	static std::shared_ptr<T> Create(Args&&... args)
 	{
@@ -22,6 +24,9 @@ public:
 			instance = std::shared_ptr<T>(new T(std::forward<Args>(args)...));
 			// ReSharper restore CppSmartPointerVsMakeFunction
 			_instance = instance;
+
+			//support after ctor initialization
+			instance->Intialize(instance);
 		}
 		return instance;
 	}
@@ -30,6 +35,8 @@ public:
 	{
 		return _instance.lock();
 	}
+
+	virtual void Intialize(std::shared_ptr<T> instance) {};
 
 	Singleton() = default;
 	Singleton(const Singleton&) = delete;

@@ -1,4 +1,5 @@
 
+#include <Stepper.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
@@ -20,29 +21,24 @@
 #include "PubSub.h"
 #include "AzureIoTHubHttpClient.h"
 #include "Singleton.h"
-#include "OnOffRelayManager.h"
-#include "PulseRelayManager.h"
 #include "Util.h"
 #include "WiFiManager.h"
 #include "WebServer.h"
 #include "Logger.h"
-#include "MementaryPushButtonManager.h"
-#include "TogglePushButtonManager.h"
 #include "AzureIoTHubManager.h"
 #include <memory>
 #include "Configuration.h"
+#include "GateManager.h"
+#include "PushButtonManager.h"
 
 using namespace std;
 
-
-
-
-void SwitchRelayState(int state);
+void OnButtonPressed();
 void Reset();
 void ResetToAccessPointMode();
 LoggerPtr_t logger;
 WiFiManagerPtr_t wifiManager;
-RelayManagerPtr_t relayManager;
+GateManagerPtr_t gateManager;
 PushButtonManagerPtr_t pushButtonManager;
 ArduinoLoopManager_t loopManager;
 ConfigurationManager_t configurationManger;
@@ -51,7 +47,7 @@ template<typename T>
 void SubscribeRemoteCommands(std::shared_ptr<T> server)
 {
 	server->Register([](const String &commandName, int id) {logger->OnCommand(commandName, id); });
-	server->Register([](const String &commandName, int id) {relayManager->OnCommand(commandName, id); });
+	server->Register([](const String &commandName, int id) {gateManager->OnCommand(commandName, id); });
 }
 
 
@@ -128,7 +124,7 @@ void SetupWebServer()
 	deviceSettings->PulseActivationPeriod = configurationManger->GetPulseActivationPeriodTimesMilliSeconds();
 	deviceSettings->PBBehavior = configurationManger->GetRelayMode() == RelayMode::Pulse ? PushButtonBehaviour::Pulse : PushButtonBehaviour::Toggle;
 
-	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return relayManager->State(); });
+	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return gateManager->Status(); });
 	webServer->SetWebSiteHeader(String(webSiteHeader));
 	webServer->SetUpdateConfiguration([](const DeviceSettings& deviceSettings)
 	{
@@ -154,15 +150,10 @@ void SetupWebServer()
 	});
 
 	SubscribeRemoteCommands(webServer);
-	if (configurationManger->GetRelayMode() == RelayMode::Pulse)
-	{
-		make_shared<WebCommand>(pulseMenuEntry, "Activate", webServer)->Register();
-	}
-	else
-	{
-		make_shared<WebCommand>(turnOnMenuEntry, "On", webServer)->Register();
-		make_shared<WebCommand>(turnOffMenuEntry, "Off", webServer)->Register();
-	}
+	make_shared<WebCommand>(openMenuEntry, "Open", webServer)->Register();
+	make_shared<WebCommand>(stopMenuEntry, "Stop", webServer)->Register();
+	make_shared<WebCommand>(closeMenuEntry, "Close", webServer)->Register();
+	
 }
 
 
@@ -170,7 +161,7 @@ void SetupWebServer()
 class PushButtonActions final : public IPushButtonActions
 {
 private:
-	void OnStateChanged(int state) override { SwitchRelayState(state);	}
+	void OnPress() override { OnButtonPressed();	}
 	int GetLongPressPeriod() override { return 5000; } //5 seconds
 	void OnLongPressDetected() override { logger->OnLongButtonPressDetection(); }
 	void OnLongPress() override { Reset(); }
@@ -215,25 +206,24 @@ void setup()
 	{
 		SetupWebServer();
 	}
+	
+	gateManager = GateManager::Create([=](const String &message)
+	{
+		logger->WriteMessage(message);
+		if (configurationManger->ShouldUseAzureIoTHub())
+		{
+			azureIoTHubManager->UpdateGateStatus(deviceId, message);
+		}
 
-	if (configurationManger->GetRelayMode() == RelayMode::Pulse)
-	{
-		pushButtonManager = MementaryPushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
-		relayManager = PulseRelayManager::Create(relay, 1000, [=](const String &message) { logger->WriteMessage(message); });
-	}
-	else
-	{
-		pushButtonManager = TogglePushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
-		relayManager = OnOffRelayManager::Create(relay, [=](const String &message) { logger->WriteMessage(message); });
-	}
+	});
 
 	if (configurationManger->ShouldUseAzureIoTHub())
 	{
-		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{ logger, wifiManager, pushButtonManager, relayManager, azureIoTHubManager });
+		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{ logger, wifiManager, pushButtonManager, gateManager, azureIoTHubManager });
 	}
 	else
 	{
-		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{logger, wifiManager, pushButtonManager, relayManager, webServer });
+		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{logger, wifiManager, pushButtonManager, gateManager, webServer });
 	}
 	logger->TestLeds();
 	configurationManger->DumpEEPromInfo();
@@ -246,13 +236,9 @@ void loop()
 	loopManager->Loop();
 }
 
-void SwitchRelayState(int state)
+void OnButtonPressed()
 {
-	relayManager->Set(state);
-	if (configurationManger->ShouldUseAzureIoTHub())
-	{
-		azureIoTHubManager->UpdateRelayState(deviceId, state);
-	}
+	gateManager->OnButtonPressed();
 }
 
 void ResetToAccessPointMode()

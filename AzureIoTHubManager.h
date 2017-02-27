@@ -37,7 +37,7 @@ private:
 public:
 	void Register(WebNotificationPtr_t subscriber) { _pubsub.Register(subscriber); }
 	void Loop() override;
-	void UpdateRelayState(char *deviceId, int state) const;
+	void UpdateGateStatus(char *deviceId, String status) const;
 	void HandleCommand(const String& commandName) const;
 
 };

@@ -89,10 +89,10 @@ void AzureIoTHubManager::Loop()
 	AzureIoTHubLoop();
 }
 
-void AzureIoTHubManager::UpdateRelayState( char *deviceId, int state) const
+void AzureIoTHubManager::UpdateGateStatus( char *deviceId, String status) const
 {
 	if (_isIotHubClientInitiated)
-		AzureIoTHubSendMessage(deviceId, state, 1);
+		AzureIoTHubSendMessage(deviceId, status.c_str());
 }
 
 void AzureIoTHubManager::UpdateStatus(ConnectionStatus status)

@@ -41,8 +41,7 @@ void PushButtonManager::Loop()
 		auto length = millis() - _pressStartTime;
 		if (length < _pushButtonActions->GetLongPressPeriod()) //less then 5 seconds, regular press
 		{
-			_state = StateOnTrigger();
-			_pushButtonActions->OnStateChanged(_state); //Notify change
+			_pushButtonActions->OnPress(); //Notify change
 		}
 		else if (length < _pushButtonActions->GetVeryLongPressPeriod()) //less the 20 seconds
 		{
