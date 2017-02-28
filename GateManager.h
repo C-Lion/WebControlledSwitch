@@ -38,15 +38,28 @@ private:
 	};
 
 	template<GateState currentState>
-	class GateMovementStandstillState final : public GateMovementState
+	class GateMovementStandstillInTheMiddleState final : public GateMovementState
 	{
 	public:
-		explicit GateMovementStandstillState(std::shared_ptr<GateManager> gateManager) : GateMovementState(gateManager) {}
+		explicit GateMovementStandstillInTheMiddleState(std::shared_ptr<GateManager> gateManager) : GateMovementState(gateManager) {}
 	private:
 		GateState State() const override { return currentState; }
 		GateState OnButtonPressed(GateState previousMovement) override
 		{
 			return previousMovement == GateState::OPENNING ? GateState::CLOSING : GateState::OPENNING;
+		}
+	};
+
+	template<GateState currentState>
+	class GateMovementOpenedClosedState final : public GateMovementState
+	{
+	public:
+		explicit GateMovementOpenedClosedState(std::shared_ptr<GateManager> gateManager) : GateMovementState(gateManager) {}
+	private:
+		GateState State() const override { return currentState; }
+		GateState OnButtonPressed(GateState previousMovement) override
+		{
+			return currentState == GateState::OPENED ? GateState::CLOSING : GateState::OPENNING;
 		}
 	};
 
@@ -71,8 +84,6 @@ private:
 			GateMovementState(gateManager), 
 			_stepper(stepsPerRevolution, stepper1, stepper2, stepper3, stepper4)
 		{
-			pinMode(limitSwitchGateClosed, INPUT);
-			pinMode(limitSwitchGateOpened, INPUT);
 			_stepper.setSpeed(stepperSpeed);
 		}
 
@@ -134,7 +145,7 @@ void GateManager::GateMovementOpennignOrClosing<Direction, CurrentState, EndStat
 	}
 	auto gateManger = _gateManager.lock();
 	GateState currentState = gateManger->ReadState();
-	if (currentState != GateState::UNKNOWN) //opened or closed
+	if (currentState == EndState) //opened or closed
 	{
 		ChangeState(currentState);
 		digitalWrite(flashingLED, LOW);

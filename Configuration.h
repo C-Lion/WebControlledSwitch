@@ -18,7 +18,6 @@ static const char *openMenuEntry = "Open Gate";
 
 const unsigned int defaultButtonLongTimePeriod = 5000; //5 seconds -> reset
 const unsigned int defaultButtonVeryLongTimePeriod = 20000; //20 seconds -> factory reset
-const unsigned int defaultPulseActivationTimePeriod = 2000; 
 
 //NodeMCU Board configuration
 //const int pushButton = 5; //D1
@@ -29,21 +28,21 @@ const unsigned int defaultPulseActivationTimePeriod = 2000;
 //const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
 
 //WeMos D1 Board gate controll with stepper motor & limit switches configuration
-const int pushButton = 13; //D7
-const int redLed = 4; //D2
-const int greenLed = 0; //D3
-const int ButtonPressed = HIGH;
-const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
-const int stepper1 = 2; //D4 
+const int pushButton = 2; //D4 Pulldup 10K
+const int redLed = 16; //D0
+const int greenLed = 5; //D1
+const int stepper1 = 4; //D2 
 const int stepper2 = 14; //D5 
 const int stepper3 = 12;  //D6
-const int stepper4 = 15; //D8
-const int limitSwitchGateOpened = 16; //D0 //use analog input
-const int limitSwitchGateClosed = 5; //D1
-const int flashingLED = A0; //Use the analog pin as digital
+const int stepper4 = 13; //D7
+const int limitSwitches = A0; //A0 pull down with 10K resistor
+const int flashingLED = 0; //D3 
 const int flashingLedPeriod = 500; //0.5 second
 const int stepsPerRevolution = 200;  // change this to fit the number of steps per revolution
 const int stepperSpeed = 1; // 0 > speed < 1024
+
+const int ButtonPressed = LOW;
+const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
 
 
 //Wifi Witty ESP-12F Board - https://blog.the-jedi.co.uk/2016/01/02/wifi-witty-esp12f-board/
@@ -54,18 +53,6 @@ const int stepperSpeed = 1; // 0 > speed < 1024
 //const int relay = 13; //BLUE led
 //const int ButtonPressed = LOW;
 //const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
-
-
-//uncomment this line to change the default behavior of the controller to act as a switch (pulse) instead of an On/Off button
-//for example, in case you need to control a garage gate that use the same signal 
-//(activate to open the door and activate again to close it)
-#define PULSE_COMMAND
-
-
-//https://azure.microsoft.com/en-us/services/iot-hub/
-//https://azure.microsoft.com/en-us/documentation/articles/iot-hub-device-sdk-c-intro/
-//uncomment this line to use Azure IoT Hub in addition to the web server
-//#define USEAZUREIOTHUB
 
 #endif
 

@@ -58,12 +58,11 @@ private:
 	std::unique_ptr<DeviceSettings> _deviceSettings;
 	ESP8266WebServer _server;
 	PubSub<WebServer, const String&, int> _pubsub;
-	bool _relayState = false;
 	String _header;
 	const String _authorizedUrl;
 	std::vector<WebCommandPtr_t> _webCommands;
 	bool _isInit = false;
-	std::function<bool()> _relayStateUpdater;
+	std::function<String()> _gateStatusUpdater;
 	std::function<void(const DeviceSettings&)> _configurationUpdater;
 	//setup template processing variables
 	int _templateIndex = 0;
@@ -76,7 +75,7 @@ private:
 	void UpdateStatus(ConnectionStatus status);
 	String CreateUrl(const String &s) const;
 	bool PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const Util::StringMap &map);
-	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater);
+	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<String ()> gateSTatusUpdater);
 
 	void HandleMain();
 	void ProcessHTTPSetupRequest();

@@ -6,11 +6,11 @@
 
 using namespace std;
 ///*static*/ char WebServer::_setupHtmlBuffer[3072]; //for setup html result
-WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> relayStateUpdater) :
+WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<String ()> gateStatusUpdater) :
 	_deviceSettings(move(deviceSettings)),
 	_server(port), 
 	_authorizedUrl(String("/") + appKey),
-	_relayStateUpdater(relayStateUpdater)
+	_gateStatusUpdater(gateStatusUpdater)
 {
 	_server.on("/", [this]() { HandleError(); });
 	_server.on((_authorizedUrl + "/view.css").c_str(), [this]() { HandleSendViewCSS(); });
@@ -50,8 +50,8 @@ void WebServer::HandleError()
 
 void WebServer::HandleMain() 
 {
-	auto html = String("<p><h3>The current switch status is ") +
-	(_relayState ? "on" : "off") + "</h3></p>";
+	auto html = String("<p><h3>The current gate status is ") +
+		(_gateStatusUpdater ? _gateStatusUpdater() : String("not implemented")) + "</h3></p>";
 	for (auto webCommand : _webCommands)
 	{
 		html += String(R"(<p><a href=")") + CreateUrl(webCommand->TriggerUrl()) + String(R"(">)") + webCommand->MenuEntry() + String("</a></p>");
@@ -83,7 +83,6 @@ void WebServer::HandleSetup()
 	_templateValuesMap["IoTConStr"] = _deviceSettings->azureIoTHubConnectionString;;
 	_templateValuesMap["PBLng"] = String(_deviceSettings->longButtonPeriod).c_str();
 	_templateValuesMap["PBVLng"] = String(_deviceSettings->veryLongButtonPeriod).c_str();
-	_templateValuesMap["PBActPrd"] = String(_deviceSettings->PulseActivationPeriod).c_str();
 
 	const String checked = R"(checked="checked")";
 	if (_deviceSettings->shouldUseAzureIoT)
@@ -95,17 +94,6 @@ void WebServer::HandleSetup()
 	{
 		_templateValuesMap["WebSrv"] = checked;
 		_templateValuesMap["IoT"] = "";
-	}
-
-	if (_deviceSettings->PBBehavior == PushButtonBehaviour::Toggle)
-	{
-		_templateValuesMap["PBBTgl"] = checked;
-		_templateValuesMap["PBBPls"] = "";
-	}
-	else
-	{
-		_templateValuesMap["PBBPls"] = checked;
-		_templateValuesMap["PBBTgl"] = "";
 	}
 
 	_isHttpSetupRequestOn = true; //start request processing
@@ -199,9 +187,7 @@ void WebServer::HandleSetConfiguration()
 	_deviceSettings->azureIoTHubConnectionString = _server.arg("IoTConStr").c_str();
 	_deviceSettings->longButtonPeriod = atoi(_server.arg("PBLng").c_str());
 	_deviceSettings->veryLongButtonPeriod = atoi(_server.arg("PBVLng").c_str());
-	_deviceSettings->PulseActivationPeriod = atoi(_server.arg("PBActPrd").c_str());
 	_deviceSettings->shouldUseAzureIoT = _server.arg("WebOrIoT") == "IoT";
-	_deviceSettings->PBBehavior = _server.arg("PBB") == "PBBTgl" ? PushButtonBehaviour::Toggle : PushButtonBehaviour::Pulse; 
 	printf("Server arguments:\n");
 	for (int i = 0; i < _server.args(); ++i)
 	{
@@ -247,9 +233,6 @@ bool WebServer::IsConnected() const
 
 void WebServer::Loop()
 {
-	if (_relayStateUpdater)
-		_relayState = _relayStateUpdater();
-
 	if (_isHttpSetupRequestOn)
 		ProcessHTTPSetupRequest();
 	

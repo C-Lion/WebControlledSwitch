@@ -25,8 +25,9 @@ public:
 
 typedef std::shared_ptr<IPushButtonActions> IPushButtonActionsPtr_t;
 
-class PushButtonManager : public IProcessor
+class PushButtonManager : public Singleton<PushButtonManager>,  public IProcessor
 {
+	friend class Singleton<PushButtonManager>;
 private:
 	const int _pin;
 	int _previousButtonState = LOW;
@@ -34,16 +35,12 @@ private:
 	IPushButtonActionsPtr_t _pushButtonActions;
 	bool _bLongDetection = false;
 	bool _bVeryLongDetection = false;
-
-protected:
-	virtual int StateOnTrigger() const = 0;
+	PushButtonManager(int pin, IPushButtonActionsPtr_t pushButtonActions);
 
 public:
 	virtual ~PushButtonManager()
 	{
 	}
-
-	PushButtonManager(int pin, IPushButtonActionsPtr_t pushButtonActions);
 	void Loop() override;
 };
 

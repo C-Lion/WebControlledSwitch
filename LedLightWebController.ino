@@ -109,6 +109,8 @@ public:
 int WebCommand::s_id = 0;
 WebServerPtr_t webServer;
 
+String gateStatus;
+
 
 void SetupWebServer()
 {
@@ -121,10 +123,8 @@ void SetupWebServer()
 	deviceSettings->AzureIoTDeviceId = configurationManger->GetIoTHubDeviceId();
 	deviceSettings->longButtonPeriod = configurationManger->GetLongPeriodButonPressTimesMilliSeconds();
 	deviceSettings->veryLongButtonPeriod = configurationManger->GetVeryLongPeriodButonPressTimesMilliSeconds();
-	deviceSettings->PulseActivationPeriod = configurationManger->GetPulseActivationPeriodTimesMilliSeconds();
-	deviceSettings->PBBehavior = configurationManger->GetRelayMode() == RelayMode::Pulse ? PushButtonBehaviour::Pulse : PushButtonBehaviour::Toggle;
 
-	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return gateManager->Status(); });
+	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return gateStatus; });
 	webServer->SetWebSiteHeader(String(webSiteHeader));
 	webServer->SetUpdateConfiguration([](const DeviceSettings& deviceSettings)
 	{
@@ -144,8 +144,7 @@ void SetupWebServer()
 		{
 			configurationManger->SetWebServerMode();
 		}
-		configurationManger->SetButonPressTimesMilliSeconds(deviceSettings.longButtonPeriod, deviceSettings.veryLongButtonPeriod, deviceSettings.PulseActivationPeriod);
-		configurationManger->SetRelayMode(deviceSettings.PBBehavior == PushButtonBehaviour::Pulse ? RelayMode::Pulse : RelayMode::OnOFF);
+		configurationManger->SetButonPressTimesMilliSeconds(deviceSettings.longButtonPeriod, deviceSettings.veryLongButtonPeriod);
 		configurationManger->FlashEEProm();
 	});
 
@@ -206,16 +205,18 @@ void setup()
 	{
 		SetupWebServer();
 	}
-	
-	gateManager = GateManager::Create([=](const String &message)
+
+	gateManager = GateManager::Create([=](const String &gateStatus)
 	{
-		logger->WriteMessage(message);
+		logger->WriteMessage(gateStatus);
 		if (configurationManger->ShouldUseAzureIoTHub())
 		{
-			azureIoTHubManager->UpdateGateStatus(deviceId, message);
+			azureIoTHubManager->UpdateGateStatus(deviceId, gateStatus);
 		}
-
+		::gateStatus = gateStatus;
 	});
+
+	pushButtonManager = PushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
 
 	if (configurationManger->ShouldUseAzureIoTHub())
 	{

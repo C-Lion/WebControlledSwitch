@@ -20,12 +20,6 @@ ConfigurationManager::ConfigurationManager()
 		_eepromInformationBlock.IoTHubDeviceId[0] = 0;//TODO: change to unique id (MAC address?)
 		_eepromInformationBlock.milliSecondsButonLongTimePeriod = defaultButtonLongTimePeriod;
 		_eepromInformationBlock.milliSecondsButonVeryLongTimePeriod= defaultButtonVeryLongTimePeriod;
-		_eepromInformationBlock.milliSecondsPulseActivationTimePeriod = defaultPulseActivationTimePeriod;
-#ifdef PULSE_COMMAND
-		_eepromInformationBlock.bPulseRelay = true;
-#else
-		_eepromInformationBlock.bPulseRelay = false;
-#endif
 	}
 }
 
@@ -88,9 +82,7 @@ void ConfigurationManager::DumpEEPromInfo()
 	Serial.printf("IoTHubDeviceId: %s\n", _eepromInformationBlock.IoTHubDeviceId);
 	Serial.printf("milliSecondsButonLongTimePeriod: %d\n", _eepromInformationBlock.milliSecondsButonLongTimePeriod);
 	Serial.printf("milliSecondsButonVeryLongTimePeriod: %d\n", _eepromInformationBlock.milliSecondsButonVeryLongTimePeriod);
-	Serial.printf("milliSecondsPulseActivationTimePeriod: %d\n", _eepromInformationBlock.milliSecondsPulseActivationTimePeriod);
 	Serial.printf("connection mode: %s\n", _eepromInformationBlock.bUseAzureIoTHub ? "AzureIoTHub" : "Web Server");
-	Serial.printf("relay mode: %s\n", _eepromInformationBlock.bPulseRelay ? "Pulse" : "Toggle");
 }
 
 
@@ -133,11 +125,10 @@ String ConfigurationManager::GetIoTHubDeviceId() const
 	return String(_eepromInformationBlock.IoTHubDeviceId);
 }
 
-void ConfigurationManager::SetButonPressTimesMilliSeconds(unsigned longPeriod, unsigned veryLongPeriod, unsigned int pulseActivationPeriod)
+void ConfigurationManager::SetButonPressTimesMilliSeconds(unsigned longPeriod, unsigned veryLongPeriod)
 {
 	_eepromInformationBlock.milliSecondsButonLongTimePeriod = longPeriod;
 	_eepromInformationBlock.milliSecondsButonVeryLongTimePeriod = veryLongPeriod;
-	_eepromInformationBlock.milliSecondsPulseActivationTimePeriod = pulseActivationPeriod;
 }
 
 
