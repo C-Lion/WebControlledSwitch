@@ -221,9 +221,10 @@ void WebServer::HandleResetAccessPoint()
 }
 void WebServer::HandleCommand(WebCommandPtr_t webCommand)
 {
-	auto html = String("<p><h3>") + webCommand->ResultHTML() +String("</h3></p>");
+	//auto html = String("<p><h3>") + webCommand->ResultHTML() +String("</h3></p>");
 	_pubsub.NotifyAll(webCommand->Name(), webCommand->Id());
-	SendBackHtml(html);
+	HandleMain();
+	//SendBackHtml(html);
 }
 
 bool WebServer::IsConnected() const

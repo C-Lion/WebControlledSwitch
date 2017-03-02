@@ -32,14 +32,14 @@ const int pushButton = 2; //D4 Pulldup 10K
 const int redLed = 16; //D0
 const int greenLed = 5; //D1
 const int stepper1 = 4; //D2 
-const int stepper2 = 14; //D5 
-const int stepper3 = 12;  //D6
+const int stepper3 = 14; //D5 
+const int stepper2 = 12;  //D6
 const int stepper4 = 13; //D7
 const int limitSwitches = A0; //A0 pull down with 10K resistor
 const int flashingLED = 0; //D3 
 const int flashingLedPeriod = 500; //0.5 second
 const int stepsPerRevolution = 200;  // change this to fit the number of steps per revolution
-const int stepperSpeed = 1; // 0 > speed < 1024
+const int stepperSpeed = 100; // 0 > speed < 1024
 
 const int ButtonPressed = LOW;
 const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
