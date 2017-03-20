@@ -14,10 +14,10 @@ void GateManager::Intialize(shared_ptr<GateManager> This) //called by the single
 	{
 		make_shared<GateMovementStandstillInTheMiddleState<GateState::UNKNOWN>>(This),
 			make_shared<GateMovementOpenedClosedState<GateState::OPENED>>(This),
-			make_shared<GateMovementOpennignOrClosing<1, GateState::OPENNING, GateState::OPENED>>(This),
+			make_shared<GateMovementOpennignOrClosing<OpeningDirection, GateState::OPENNING, GateState::OPENED>>(This),
 			make_shared<GateMovementStopping>(This),
 			make_shared<GateMovementStandstillInTheMiddleState<GateState::STOPPED>>(This),
-			make_shared<GateMovementOpennignOrClosing<-1, GateState::CLOSING, GateState::CLOSED>>(This),
+			make_shared<GateMovementOpennignOrClosing<-OpeningDirection, GateState::CLOSING, GateState::CLOSED>>(This),
 			make_shared<GateMovementOpenedClosedState<GateState::CLOSED>>(This)
 	};
 
@@ -54,8 +54,7 @@ GateState GateManager::ReadState()
 {
 	
 	int limitSwitchesValue = analogRead(limitSwitches);
-	//Serial.println(limitSwitchesValue);
-
+	Serial.println(limitSwitchesValue);
 	//Use the A0 analog input to read resistor values. the closed limit switch has a 1/2 resistor ratio, the open limit switch as 2/3 ratio. Together they have 3/4
 	bool limitSwitchGateClosedValue = (450 < limitSwitchesValue && limitSwitchesValue < 520) || limitSwitchesValue > 570; 
 	bool limitSwitchGateOpenedValue = (300 < limitSwitchesValue && limitSwitchesValue < 370) || limitSwitchesValue > 570;

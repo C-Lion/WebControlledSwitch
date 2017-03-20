@@ -19,14 +19,6 @@ static const char *openMenuEntry = "Open Gate";
 const unsigned int defaultButtonLongTimePeriod = 5000; //5 seconds -> reset
 const unsigned int defaultButtonVeryLongTimePeriod = 20000; //20 seconds -> factory reset
 
-//NodeMCU Board configuration
-//const int pushButton = 5; //D1
-//const int redLed = 4; //D2
-//const int greenLed = 15; //D8
-//const int relay = 2; //D4
-//const int ButtonPressed = HIGH;
-//const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
-
 //WeMos D1 Board gate controll with stepper motor & limit switches configuration
 const int pushButton = 2; //D4 Pulldup 10K
 const int redLed = 16; //D0
@@ -40,19 +32,9 @@ const int flashingLED = 0; //D3
 const int flashingLedPeriod = 500; //0.5 second
 const int stepsPerRevolution = 200;  // change this to fit the number of steps per revolution
 const int stepperSpeed = 100; // 0 > speed < 1024
-
+const int OpeningDirection = -1; //set the initial motor direction (-1 or 1)
 const int ButtonPressed = LOW;
 const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
-
-
-//Wifi Witty ESP-12F Board - https://blog.the-jedi.co.uk/2016/01/02/wifi-witty-esp12f-board/
-//const int LDR = A0;
-//const int pushButton = 4;
-//const int redLed = 15;
-//const int greenLed = 12;
-//const int relay = 13; //BLUE led
-//const int ButtonPressed = LOW;
-//const int ButtonReleased = ButtonPressed == HIGH ? LOW : HIGH;
 
 #endif
 
