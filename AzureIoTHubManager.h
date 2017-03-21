@@ -24,8 +24,6 @@ private:
 	static AzureIoTHubClient _iotHubClient;
 	bool _isTimeInitiated = false;
 	bool _isIotHubClientInitiated = false;
-	PubSub<AzureIoTHubManager, const String&, int> _pubsub;
-	bool _relayState = false;
 	LoggerPtr_t _logger;
 	bool _IsInitTime = false;
 	int _loopStartTime = millis();
@@ -35,11 +33,8 @@ private:
 	bool CheckIoTHubClientInitiated();
 	AzureIoTHubManager(WiFiManagerPtr_t wifiManager, LoggerPtr_t logger, const char* connectionString);
 public:
-	void Register(WebNotificationPtr_t subscriber) { _pubsub.Register(subscriber); }
 	void Loop() override;
-	void UpdateRelayState(char *deviceId, int state) const;
-	void HandleCommand(const String& commandName) const;
-
+	void ReportWaterStatus(const char *deviceId, const char *status) const;
 };
 
 

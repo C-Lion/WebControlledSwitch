@@ -20,13 +20,11 @@
 #include "PubSub.h"
 #include "AzureIoTHubHttpClient.h"
 #include "Singleton.h"
-#include "OnOffRelayManager.h"
-#include "PulseRelayManager.h"
 #include "Util.h"
 #include "WiFiManager.h"
 #include "WebServer.h"
+#include "WaterSensorManager.h"
 #include "Logger.h"
-#include "MementaryPushButtonManager.h"
 #include "TogglePushButtonManager.h"
 #include "AzureIoTHubManager.h"
 #include <memory>
@@ -37,80 +35,22 @@ using namespace std;
 
 
 
-void SwitchRelayState(int state);
 void Reset();
 void ResetToAccessPointMode();
 LoggerPtr_t logger;
 WiFiManagerPtr_t wifiManager;
-RelayManagerPtr_t relayManager;
+WaterSensorManagerPtr_t waterSensorManager;
 PushButtonManagerPtr_t pushButtonManager;
 ArduinoLoopManager_t loopManager;
 ConfigurationManager_t configurationManger;
-
-template<typename T>
-void SubscribeRemoteCommands(std::shared_ptr<T> server)
-{
-	server->Register([](const String &commandName, int id) {logger->OnCommand(commandName, id); });
-	server->Register([](const String &commandName, int id) {relayManager->OnCommand(commandName, id); });
-}
-
-
 AzureIoTHubManagerPtr_t azureIoTHubManager;
 
 void SetupAzureIoTHubManager()
 {
 	char *connectionString = strdup(configurationManger->GetAzureIoTConnectionString().c_str()); //use only once, so not really a memory leak
 	azureIoTHubManager = AzureIoTHubManager::Create(wifiManager, logger, connectionString);
-	SubscribeRemoteCommands(azureIoTHubManager);
 }
 
-class WebCommand : public IWebCommand, public enable_shared_from_this<WebCommand>
-{
-private:
-	static int s_id;
-	const String _menuEnrty;
-	const String _commandName;
-	const String _resultHtml;
-	const int _id = ++s_id;
-	weak_ptr<WebServer> _webServer;
-
-public:
-	WebCommand(String menuEntry, String commandName, WebServerPtr_t webServer) : _menuEnrty(menuEntry), _commandName(commandName),
-		_resultHtml(String("Processing ") + _commandName + " Command"), _webServer(webServer)
-	{
-	}
-
-	void Register()
-	{
-		_webServer.lock()->RegisterCommand(shared_from_this());
-	}
-
-	const String& MenuEntry() const override
-	{
-		return _menuEnrty;
-	}
-
-	const String& Name() const override
-	{
-		return _commandName;
-	}
-
-	const String& ResultHTML() const override
-	{
-		return _resultHtml;
-	}
-	const String& TriggerUrl() const override
-	{
-		return _commandName;
-	}
-
-	int Id() const override
-	{
-		return _id;
-	}
-};
-
-int WebCommand::s_id = 0;
 WebServerPtr_t webServer;
 
 
@@ -125,10 +65,8 @@ void SetupWebServer()
 	deviceSettings->AzureIoTDeviceId = configurationManger->GetIoTHubDeviceId();
 	deviceSettings->longButtonPeriod = configurationManger->GetLongPeriodButonPressTimesMilliSeconds();
 	deviceSettings->veryLongButtonPeriod = configurationManger->GetVeryLongPeriodButonPressTimesMilliSeconds();
-	deviceSettings->PulseActivationPeriod = configurationManger->GetPulseActivationPeriodTimesMilliSeconds();
-	deviceSettings->PBBehavior = configurationManger->GetRelayMode() == RelayMode::Pulse ? PushButtonBehaviour::Pulse : PushButtonBehaviour::Toggle;
 
-	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return relayManager->State(); });
+	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return waterSensorManager->State(); });
 	webServer->SetWebSiteHeader(String(webSiteHeader));
 	webServer->SetUpdateConfiguration([](const DeviceSettings& deviceSettings)
 	{
@@ -148,21 +86,9 @@ void SetupWebServer()
 		{
 			configurationManger->SetWebServerMode();
 		}
-		configurationManger->SetButonPressTimesMilliSeconds(deviceSettings.longButtonPeriod, deviceSettings.veryLongButtonPeriod, deviceSettings.PulseActivationPeriod);
-		configurationManger->SetRelayMode(deviceSettings.PBBehavior == PushButtonBehaviour::Pulse ? RelayMode::Pulse : RelayMode::OnOFF);
+		configurationManger->SetButonPressTimesMilliSeconds(deviceSettings.longButtonPeriod, deviceSettings.veryLongButtonPeriod);
 		configurationManger->FlashEEProm();
 	});
-
-	SubscribeRemoteCommands(webServer);
-	if (configurationManger->GetRelayMode() == RelayMode::Pulse)
-	{
-		make_shared<WebCommand>(pulseMenuEntry, "Activate", webServer)->Register();
-	}
-	else
-	{
-		make_shared<WebCommand>(turnOnMenuEntry, "On", webServer)->Register();
-		make_shared<WebCommand>(turnOffMenuEntry, "Off", webServer)->Register();
-	}
 }
 
 
@@ -170,7 +96,7 @@ void SetupWebServer()
 class PushButtonActions final : public IPushButtonActions
 {
 private:
-	void OnStateChanged(int state) override { SwitchRelayState(state);	}
+	void OnStateChanged(int state) override {	}
 	int GetLongPressPeriod() override { return 5000; } //5 seconds
 	void OnLongPressDetected() override { logger->OnLongButtonPressDetection(); }
 	void OnLongPress() override { Reset(); }
@@ -178,6 +104,12 @@ private:
 	void OnVeryLongPressDetected() override { logger->OnVeryLongButtonPressDetection(); }
 	void OnVeryLongPress() override { ResetToAccessPointMode(); }
 };
+
+void ReportWaterStatus(bool state)
+{
+	if (azureIoTHubManager)
+		azureIoTHubManager->ReportWaterStatus(configurationManger->GetIoTHubDeviceId().c_str(), state ? "Water Alarm" : "No Alarm");
+}
 
 void setup()
 {
@@ -215,25 +147,17 @@ void setup()
 	{
 		SetupWebServer();
 	}
-
-	if (configurationManger->GetRelayMode() == RelayMode::Pulse)
-	{
-		pushButtonManager = MementaryPushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
-		relayManager = PulseRelayManager::Create(relay, 1000, [=](const String &message) { logger->WriteMessage(message); });
-	}
-	else
-	{
-		pushButtonManager = TogglePushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
-		relayManager = OnOffRelayManager::Create(relay, [=](const String &message) { logger->WriteMessage(message); });
-	}
+	
+	waterSensorManager = WaterSensorManager::Create(WaterSensor, BlueLed, WaterStateReportInterval, [=](bool state) { ReportWaterStatus(state); });
+	pushButtonManager = TogglePushButtonManager::Create(pushButton, make_shared<PushButtonActions>());
 
 	if (configurationManger->ShouldUseAzureIoTHub())
 	{
-		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{ logger, wifiManager, pushButtonManager, relayManager, azureIoTHubManager });
+		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{ logger, wifiManager, pushButtonManager, waterSensorManager, azureIoTHubManager });
 	}
 	else
 	{
-		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{logger, wifiManager, pushButtonManager, relayManager, webServer });
+		loopManager = ArduinoLoopManager::Create(initializer_list<processor_t>{logger, wifiManager, pushButtonManager, waterSensorManager, webServer });
 	}
 	logger->TestLeds();
 	configurationManger->DumpEEPromInfo();
@@ -246,14 +170,6 @@ void loop()
 	loopManager->Loop();
 }
 
-void SwitchRelayState(int state)
-{
-	relayManager->Set(state);
-	if (configurationManger->ShouldUseAzureIoTHub())
-	{
-		azureIoTHubManager->UpdateRelayState(deviceId, state);
-	}
-}
 
 void ResetToAccessPointMode()
 {

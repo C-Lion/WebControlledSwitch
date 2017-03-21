@@ -14,30 +14,6 @@ void sendCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* userContextCal
 	LogInfo("Result Call Back Called! Result is: %s \r\n", ENUM_TO_STRING(IOTHUB_CLIENT_CONFIRMATION_RESULT, result));
 }
 
-//static void sendMessage(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsigned char* buffer, size_t size)
-//{
-//	static unsigned int messageTrackingId;
-//	IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromByteArray(buffer, size);
-//	if (messageHandle == nullptr)
-//	{
-//		LogInfo("unable to create a new IoTHubMessage\r\n");
-//	}
-//	else
-//	{
-//		if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback,
-//			reinterpret_cast<void*>(static_cast<uintptr_t>(messageTrackingId))) != IOTHUB_CLIENT_OK)
-//		{
-//			LogInfo("failed to hand over the message to IoTHubClient");
-//		}
-//		else
-//		{
-//			LogInfo("IoTHubClient accepted the message for delivery\r\n");
-//		}
-//		IoTHubMessage_Destroy(messageHandle);
-//	}
-//	free(const_cast<unsigned char*>(buffer));
-//	messageTrackingId++;
-//}
 
 static IOTHUBMESSAGE_DISPOSITION_RESULT IoTHubMessage(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback)
 {
@@ -51,17 +27,16 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT IoTHubMessage(IOTHUB_MESSAGE_HANDLE mess
 		return IOTHUBMESSAGE_REJECTED;
 	}// else
 	char commandBuffer[16]; //command should be less then 15 characters
-	
+
 	if (size > sizeof(commandBuffer) - 1) //copy up to 15 chars
 		size = sizeof(commandBuffer) - 1;
-	
-	memcpy(commandBuffer, buffer, size); 
+
+	memcpy(commandBuffer, buffer, size);
 	commandBuffer[size] = 0;
 	String command(commandBuffer);
-	
+
 	Serial.printf("Message arrived, command:%s\n", command.c_str());
-	AzureIoTHubManager::Instance()->HandleCommand(command);
-			
+	
 	return IOTHUBMESSAGE_ACCEPTED;
 }
 
@@ -70,7 +45,7 @@ IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
 extern "C" bool AzureIoTHubInit(const char *connectionString)
 {
 	Serial.printf("Connection string: %s\n", connectionString);
-	
+
 	iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, HTTP_Protocol);
 	srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -97,13 +72,13 @@ extern "C" bool AzureIoTHubInit(const char *connectionString)
 	return true;
 }
 
-extern "C" bool AzureIoTHubSendMessage(char *deviceId, int status, int messageId)
+extern "C" bool AzureIoTHubSendMessage(char *deviceId, const char *status)
 {
 	bool result = false;
 
 	unsigned char* destination;
 	size_t destinationSize;
-	
+
 
 	IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromByteArray(destination, destinationSize);
 	if (messageHandle == nullptr)
@@ -112,7 +87,7 @@ extern "C" bool AzureIoTHubSendMessage(char *deviceId, int status, int messageId
 	}
 	else
 	{
-		if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback, reinterpret_cast<void*>(messageId)) != IOTHUB_CLIENT_OK)
+		if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback, reinterpret_cast<void*>(1)) != IOTHUB_CLIENT_OK)
 		{
 			LogInfo("failed to hand over the message to IoTHubClient");
 		}
