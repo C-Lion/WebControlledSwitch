@@ -67,6 +67,7 @@ void SetupWebServer()
 	deviceSettings->veryLongButtonPeriod = configurationManger->GetVeryLongPeriodButonPressTimesMilliSeconds();
 
 	webServer = WebServer::Create(wifiManager, 80, appKey, std::move(deviceSettings), []() { return waterSensorManager->State(); });
+	 
 	webServer->SetWebSiteHeader(String(webSiteHeader));
 	webServer->SetUpdateConfiguration([](const DeviceSettings& deviceSettings)
 	{

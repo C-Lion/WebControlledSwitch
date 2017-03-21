@@ -76,11 +76,8 @@ extern "C" bool AzureIoTHubSendMessage(char *deviceId, const char *status)
 {
 	bool result = false;
 
-	unsigned char* destination;
-	size_t destinationSize;
-
-
-	IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromByteArray(destination, destinationSize);
+	Serial.println(status);
+	IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromString(status);
 	if (messageHandle == nullptr)
 	{
 		LogInfo("unable to create a new IoTHubMessage\r\n");
@@ -99,7 +96,6 @@ extern "C" bool AzureIoTHubSendMessage(char *deviceId, const char *status)
 
 		IoTHubMessage_Destroy(messageHandle);
 	}
-	free(destination);
 	return result;
 }
 

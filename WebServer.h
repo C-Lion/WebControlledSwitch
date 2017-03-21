@@ -16,6 +16,23 @@
 #include "ArduinoLoopManager.h"
 #include "Util.h"
 
+class IWebCommand
+{
+public:
+	virtual const String& Name() const = 0;
+	virtual int Id() const = 0;
+	virtual const String& MenuEntry() const = 0;
+	virtual const String& ResultHTML() const = 0;
+	virtual const String& TriggerUrl() const = 0;
+
+	virtual ~IWebCommand() {}
+};
+
+enum class PushButtonBehaviour
+{
+	Toggle,
+	Pulse
+};
 
 struct DeviceSettings
 {
@@ -27,8 +44,11 @@ struct DeviceSettings
 	String AzureIoTDeviceId;
 	unsigned int longButtonPeriod;
 	unsigned int veryLongButtonPeriod;
+	unsigned int PulseActivationPeriod;
+	PushButtonBehaviour PBBehavior;
 };
 
+typedef std::shared_ptr<IWebCommand> WebCommandPtr_t;
 typedef std::function<void(const String&, int)> WebNotificationPtr_t;
 class WebServer : public Singleton<WebServer>, public IProcessor
 {
@@ -38,11 +58,11 @@ private:
 	std::unique_ptr<DeviceSettings> _deviceSettings;
 	ESP8266WebServer _server;
 	PubSub<WebServer, const String&, int> _pubsub;
-	bool _waterStatus = false;
 	String _header;
 	const String _authorizedUrl;
+	std::vector<WebCommandPtr_t> _webCommands;
 	bool _isInit = false;
-	std::function<bool()> _waterStatusUpdater;
+	std::function<bool()> _waterSensorStatusUpdater;
 	std::function<void(const DeviceSettings&)> _configurationUpdater;
 	//setup template processing variables
 	int _templateIndex = 0;
@@ -55,7 +75,7 @@ private:
 	void UpdateStatus(ConnectionStatus status);
 	String CreateUrl(const String &s) const;
 	bool PopulateHTMLSetupFromTemplate(const String& htmlTemplate, const Util::StringMap &map);
-	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> waterStatusUpdater);
+	WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool ()> waterSensorStatusUpdater);
 
 	void HandleMain();
 	void ProcessHTTPSetupRequest();
@@ -66,15 +86,17 @@ private:
 	void HandleSetConfiguration();
 	void HandleResetAccessPoint();
 	void HandleError();
+	void HandleCommand(WebCommandPtr_t webCommand);
 
- public:
+public:
+	void RegisterCommand(WebCommandPtr_t command);
 	template<typename T>
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
+	void Register(WebNotificationPtr_t subscriber) { _pubsub.Register(subscriber); }
 	bool IsConnected() const;
-	void Loop() override;
+	void Loop();
 	void SetUpdateConfiguration(std::function<void(const DeviceSettings&)> configurationUpdater);
 };
 
 typedef std::shared_ptr<WebServer> WebServerPtr_t;
 #endif
-

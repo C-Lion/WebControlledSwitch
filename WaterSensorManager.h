@@ -22,7 +22,7 @@ private:
 
  public:
 	 virtual ~WaterSensorManager() {}
-	 int State() const
+	 bool State() const
 	 {
 		 return analogRead(_sensorPin) > 200;
 	 }

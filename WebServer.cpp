@@ -5,19 +5,19 @@
 
 
 using namespace std;
-
-WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> waterStatusUpdater) :
+///*static*/ char WebServer::_setupHtmlBuffer[3072]; //for setup html result
+WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> waterSensorStatusUpdater) :
 	_deviceSettings(move(deviceSettings)),
-	_server(port), 
+	_server(port),
 	_authorizedUrl(String("/") + appKey),
-	_waterStatusUpdater(waterStatusUpdater)
+	_waterSensorStatusUpdater(waterSensorStatusUpdater)
 {
 	_server.on("/", [this]() { HandleError(); });
 	_server.on((_authorizedUrl + "/view.css").c_str(), [this]() { HandleSendViewCSS(); });
 	_server.on((_authorizedUrl + "/ap_script.js").c_str(), [this]() { HandleSendAPScript(); });
 	_server.on((_authorizedUrl + "/aplist.html").c_str(), [this]() { HandleSendAPList(); });
 	_server.on((_authorizedUrl + "/setup").c_str(), [this]() { HandleSetup(); });
-	_server.on((_authorizedUrl + "/setconfiguration").c_str(),HTTP_POST, [this]() { HandleSetConfiguration(); });
+	_server.on((_authorizedUrl + "/setconfiguration").c_str(), HTTP_POST, [this]() { HandleSetConfiguration(); });
 	_server.on((_authorizedUrl + "/resetaccesspoint").c_str(), [this]() { HandleResetAccessPoint(); });
 	_server.on(_authorizedUrl.c_str(), [this]() { HandleMain(); });
 	_server.on((_authorizedUrl + "/").c_str(), [this]() { HandleMain(); });
@@ -26,6 +26,12 @@ WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey,
 	wifiManager->RegisterClient([this](ConnectionStatus status) { UpdateStatus(status); });
 }
 
+void WebServer::RegisterCommand(WebCommandPtr_t command)
+{
+	_webCommands.push_back(command);
+	auto url = String(CreateUrl(command->TriggerUrl()));
+	_server.on(url.c_str(), [=]() {  HandleCommand(command); });
+}
 
 void WebServer::SendBackHtml(const String &message)
 {
@@ -42,10 +48,12 @@ void WebServer::HandleError()
 		"Unauthorized");
 }
 
-void WebServer::HandleMain() 
+void WebServer::HandleMain()
 {
-	auto html = String("<p><h3>The current switch status is ") +
-	(_waterStatus ? "on" : "off") + "</h3></p>";
+	
+	auto html = String("<p><h3>There are ") +
+		((_waterSensorStatusUpdater ? (_waterSensorStatusUpdater() ? "" : "no ") : String("not implemented"))) + "water</h3></p>";
+	
 	html += String(R"(<br/><p><a href=")") + CreateUrl("resetaccesspoint") + String(R"(">Factory Reset!</a></p>)");
 	SendBackHtml(html);
 }
@@ -86,7 +94,6 @@ void WebServer::HandleSetup()
 		_templateValuesMap["IoT"] = "";
 	}
 
-
 	_isHttpSetupRequestOn = true; //start request processing
 	ProcessHTTPSetupRequest();
 }
@@ -123,7 +130,7 @@ void WebServer::HandleSendAPList()
 //extern void pp_soft_wdt_stop();
 //extern void pp_soft_wdt_restart();
 
-bool WebServer::PopulateHTMLSetupFromTemplate(const String &htmlTemplate, const Util::StringMap & map) 
+bool WebServer::PopulateHTMLSetupFromTemplate(const String &htmlTemplate, const Util::StringMap & map)
 {
 	int startTime = millis();
 	do
@@ -187,15 +194,15 @@ void WebServer::HandleSetConfiguration()
 
 	String html =
 		R"(<p><center><h3>The device will reboot and try to connect to:</h3></center></p><p>)";
-		html += _deviceSettings->ssidName;
-		html += "</p><br/>";
-		html += "If after the reboot the two Leds are blinking or the green led is not turned on, do a factory reset by pressing the button for more than ";
-		html += String(_deviceSettings->veryLongButtonPeriod / 1000).c_str();
-		html += " seconds. The two leds should blink very fast.";
+	html += _deviceSettings->ssidName;
+	html += "</p><br/>";
+	html += "If after the reboot the two Leds are blinking or the green led is not turned on, do a factory reset by pressing the button for more than ";
+	html += String(_deviceSettings->veryLongButtonPeriod / 1000).c_str();
+	html += " seconds. The two leds should blink very fast.";
 
-		SendBackHtml(html.c_str());
-		_configurationUpdater(*_deviceSettings.get());
-		Util::software_Reboot();
+	SendBackHtml(html.c_str());
+	_configurationUpdater(*_deviceSettings.get());
+	Util::software_Reboot();
 }
 
 void WebServer::HandleResetAccessPoint()
@@ -203,12 +210,19 @@ void WebServer::HandleResetAccessPoint()
 	_deviceSettings->isFactoryReset = true;
 	String html =
 		R"(<p><h3>Access point credentials has been reset.</h3></p><br/><p>Reset device to activate access point mode.</p><br/>)";
-		html += R"(<p>Set new access point SSID information by surfing to )";
-		html += String(R"(http://192.168.4.1/)") + CreateUrl("setup").c_str();
-		html += "</p>";
+	html += R"(<p>Set new access point SSID information by surfing to )";
+	html += String(R"(http://192.168.4.1/)") + CreateUrl("setup").c_str();
+	html += "</p>";
 
 	SendBackHtml(html.c_str());
 	_configurationUpdater(*_deviceSettings.get()); //this will reset the device
+}
+void WebServer::HandleCommand(WebCommandPtr_t webCommand)
+{
+	//auto html = String("<p><h3>") + webCommand->ResultHTML() +String("</h3></p>");
+	_pubsub.NotifyAll(webCommand->Name(), webCommand->Id());
+	HandleMain();
+	//SendBackHtml(html);
 }
 
 bool WebServer::IsConnected() const
@@ -218,12 +232,9 @@ bool WebServer::IsConnected() const
 
 void WebServer::Loop()
 {
-	if (_waterStatusUpdater)
-		_waterStatus = _waterStatusUpdater();
-
 	if (_isHttpSetupRequestOn)
 		ProcessHTTPSetupRequest();
-	
+
 	_server.handleClient();
 }
 
