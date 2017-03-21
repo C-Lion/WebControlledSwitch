@@ -71,7 +71,7 @@ private:
 	template<typename T>
 	void SetWebSiteHeader(T header) { _header = std::forward<T>(header); }
 	bool IsConnected() const;
-	void Loop();
+	void Loop() override;
 	void SetUpdateConfiguration(std::function<void(const DeviceSettings&)> configurationUpdater);
 };
 

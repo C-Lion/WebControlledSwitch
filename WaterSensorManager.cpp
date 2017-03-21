@@ -17,6 +17,7 @@ void WaterSensorManager::Loop()
 
 	if (millis() - _lastReportTime >= _stateReportInterval)
 	{
+		Serial.println(analogRead(A0));
 		_lastReportTime = millis(); //reset the time
 		if (_stateSubscriber)
 			_stateSubscriber(State());

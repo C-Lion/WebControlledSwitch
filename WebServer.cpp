@@ -5,7 +5,7 @@
 
 
 using namespace std;
-///*static*/ char WebServer::_setupHtmlBuffer[3072]; //for setup html result
+
 WebServer::WebServer(WiFiManagerPtr_t wifiManager, int port, const char *appKey, std::unique_ptr<DeviceSettings> deviceSettings, std::function<bool()> waterStatusUpdater) :
 	_deviceSettings(move(deviceSettings)),
 	_server(port), 
